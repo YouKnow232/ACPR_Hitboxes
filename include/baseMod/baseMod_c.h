@@ -35,7 +35,7 @@ struct BaseMod_NativeFunctionsApi {
      *      The character set is limited to upper case letters, numbers, and the following special symbols: "-+.!?/():&"
      *      The following characters map to additional special characters:
      *          ",~acegiwxyz" maps to "•±on•utabyx".
-     *          '>' = END character from the highscore initals screen.
+     *          '>' = END character from the highscore initials screen.
      *          "bdfh" = down/left/right/up arrows
      *  \param xPos Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
      *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
@@ -45,6 +45,52 @@ struct BaseMod_NativeFunctionsApi {
      *  \return 0 if no error, else error code.
      */
     uint32_t __stdcall (*RenderText)(const char* text, int32_t xPos, int32_t yPos, float zPos, uint8_t alpha, float size);
+
+    /**
+     *  \brief A higher level text rendering function that triggers a text popup animation in-game (e.g. COUNTER HIT / RECOVERY).
+     * 
+     *  \param playerIndex Which side of the screen to display the pop up.
+     *  \param text The text to be displayed. See `RenderText` for format and available characters.
+     */
+    uint32_t __stdcall (*RenderPopUpText)(int32_t playerIndex, const char* text);
+
+    /**
+     *  \brief Plays a sound effect.
+     * 
+     *  \param id The given id maps to the "COMMON SE" sound effect in the Sound menu.
+     *      See github.com/youknow232/gearloader/docs/SoundEffectIdMap.txt for the id mappings.
+     */
+    uint32_t __stdcall (*PlayCommonSoundEffect)(uint32_t id);
+
+    /**
+     *  \brief Draws a sprite to the screen.
+     * 
+     *  See `GGXXACPR_DrawSpriteParams`
+     * 
+     *  \param params Combined parameter struct
+     *  \param flag Unkown
+     */
+    uint32_t __stdcall (* DrawSprite)(GGXXACPR_DrawSpriteParams* params, int32_t flag);
+
+    /**
+     *  \brief Draws a rectangle to the screen.
+     * 
+     *  A simple helper function that constructs four vertices from the given parameters
+     *      and renders the resulting quad with the game's D3D9 setup.
+     *      The edges of the quad are given in internal resolution screen space coordinates.
+     *      The top left pixel is (0, 0) and the bottom right pixel is (640, 480).
+     *      
+     *  This function should only be invoked in the context of the game's main scene, such
+     *      as during a hook registered with `BaseMod_Api::BeforeEndScene`.
+     * 
+     *  \param left edge position
+     *  \param top edge position
+     *  \param right edge position
+     *  \param bottom edge position
+     *  \param zPos The Z coordinate for each vertex
+     *  \param color ARGB color value (i.e. `D3DCOLOR` from `D3D9Types.h`)
+     */
+    void __stdcall (*DrawQuad)(int32_t left, int32_t top, int32_t right, int32_t bottom, int32_t zPos, uint32_t color);
 };
 
 
@@ -281,6 +327,67 @@ struct BaseMod_HookApi {
     uint32_t __stdcall (*RemoveHook)(BaseMod_HookId id);
 };
 
+/**
+ *  @brief Represents a mod menu entry.
+ * 
+ *  Entries can display in 3 different modes depending on which values are defined in this
+ *      struct.
+ * 
+ *  - Command:
+ *    - Definition: Value is null, ValueLabels is null, and Command is defined
+ *    - Behavior: Only display label, execute command when selected.
+ *  - Number Line:
+ *    - Definition: Value is defined and ValueLabels is null
+ *    - Behavior: Set a value on a number line (e.g. Training Menu->Life Bar)
+ *  - Enum Value:
+ *    - Definition: Value and ValueLabels are defined
+ *    - Behavior: Select a value (e.g. Training Menu->Display)
+ * 
+ *  Number Line and Enum Value type entries may also have a command function.
+ */
+typedef struct BaseMod_ModMenuEntry {
+    // Primary label.
+    const char* Label;
+    // Real value behind the setting. This value will be read and written to.
+    int32_t* Value;
+    // Inclusive
+    int32_t MinValue;
+    // Inclusive. Maximum value for Number Line and maximum index for value
+    //  labels (i.e. max enum value-1). Getting this value wrong will can cause crashes.
+    int32_t MaxValue;
+    /**
+     * \brief A list of labels to assign to each value.
+     * 
+     *  Value labels are drawn via the `RenderText` internal function. String format and character
+     *      restrictions apply. see `BaseMod_NativeFunctionsApi::RenderText` for details.
+     */
+    const char** ValueLabels;
+    // Function to execute when selected.
+    void (__stdcall *Command)();
+} BaseMod_ModMenuEntry;
+
+struct BaseMod_ModMenuApi {
+    /// \brief The size of the struct in bytes
+    uint32_t size;
+    /**
+     *  \brief the API version.
+     * 
+     *  The mod loader will create this struct with the value given by the `BASEMOD_API_VERSION_NUM`
+     *      macro. Compare this value with the `BASEMOD_API_VERSION_NUM` macro to detect version
+     *      differences between the installed mod loader version and the targeted mod loader API version.
+     *      The format is a semantic version 0x00AABBCC where 0xAA is major, 0xBB is minor, and 0xCC is patch number.
+     */
+    uint32_t version;
+    /**
+     *  \brief Registers a menu definition with the mod menu.
+     * 
+     *  \param title Tab name. Character limitations are similar to `BaseMod_NativeFunctionsApi::RenderText`
+     *  \param entries An array of BaseMod_ModMenuEntry structures comprising the menu defintion.
+     *      See `BaseMod_ModMenuEntry`. Callers must maintain the lifetime of values in the declaration.
+     *  \return 0 if no error, else an error code.
+     */
+    uint32_t __stdcall (*RegisterMenuTab)(const char* title, const BaseMod_ModMenuEntry* entries, uint32_t numEntries);
+};
 
 // Root struct for the base mod API. A pointer to an instance of
 //  this struct will be given by `IGearLoaderApi.RetrieveModAPI()`.
@@ -302,6 +409,8 @@ typedef struct BaseMod_Api {
     const struct BaseMod_GameDataApi* GameData;
     /// \brief Function hooking manager
     const struct BaseMod_HookApi* Hooks;
+    /// \brief Add options to mod menu
+    const struct BaseMod_ModMenuApi* ModMenu;
 } BaseMod_Api;
 
 #ifdef __cplusplus

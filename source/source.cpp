@@ -32,6 +32,18 @@ void __stdcall CleanHitRecordHit(
     // Hook CL func or something
 }
 
+inline void RegisterModMenu(BaseMod::ModMenuApi& api) {
+    auto& setting = SettingsManager::GetInstance();
+    static const char* displayLabels[4] =
+        {"ALL", "P2 ONLY", "P1 ONLY", "NONE"};
+
+    static const BaseMod::ModMenuEntry modMenuEntries[1] {
+        {"Display", &setting.HidePlayer, 0, 3, displayLabels, nullptr}
+    };
+
+    api.RegisterMenuTab("HITBOXES", modMenuEntries, 1);
+}
+
 GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderApi* api) {
     GearLoader::Api* glApi = new GearLoader::Api(api, ctx);
     SetLogger(glApi);
@@ -61,7 +73,11 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
         return;
     }
 
+    RegisterModMenu(bmApi->ModMenu);
+
     // Register hooks
     renderHookId = bmApi->Hooks.BeforePresent<BaseMod::Api>(RenderHook, bmApi);
     clRecordHookId = bmApi->Hooks.AfterGameUpdate<BaseMod::Api>(CleanHitRecordHit, bmApi);
+
+    std::cout << "[Hitboxes] Initialized" << std::endl;
 }

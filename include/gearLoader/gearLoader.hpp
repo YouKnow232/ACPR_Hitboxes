@@ -58,9 +58,9 @@ namespace GearLoader {
          *      "[operator][semanticVersion]" where operator may be any of ["<", "<=", "=", ">=", ">"].
          *      Examples: ">=0.1.0" or "1.0.0"
          *  \param pApi A pointer to a pointer variable that receives the API pointer.
-         *  \param retrievedVersion A pointer to a `SemanticVersion` structure that recieves version
-         *      information of the recieved version.
-         *  \return An error code if an error occured, otherwise `0`
+         *  \param retrievedVersion A pointer to a `SemanticVersion` structure that receives version
+         *      information of the received version.
+         *  \return An error code if an error occurred, otherwise `0`
          */
         template<typename ApiType>
         int RetrieveModApi(std::string name,
@@ -93,7 +93,7 @@ namespace GearLoader {
          *  \param api A pointer the the API struct to be registered.
          *  \param name The name of the registered API. This same name will need to be passed to `RetrieveModApi`.
          *  \param version The version of the registered API. Used when resolving the version constraint passed to `RetrieveModApi`.
-         *  \return An error code if an error occured, otherwise `0`.
+         *  \return An error code if an error occurred, otherwise `0`.
          */
         int RegisterApi (const void* api,
                          std::string name,
@@ -108,7 +108,7 @@ namespace GearLoader {
          *      "mod-name" is the calling mod's name provided in its `config.json` file.
          * 
          *  \param str The string to be logged.
-         *  \return An error code if an error occured, otherwise `0`.
+         *  \return An error code if an error occurred, otherwise `0`.
          */
         int Log(LogLevel logLevel, std::string str) {
             if (VersionError()) return 3;

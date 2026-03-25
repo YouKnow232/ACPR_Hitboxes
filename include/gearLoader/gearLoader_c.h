@@ -63,9 +63,9 @@ typedef struct GearLoaderApi {
      *      "[operator][semanticVersion]" where operator may be any of ["<", "<=", "=", ">=", ">"].
      *      Examples: ">=0.1.0" or "1.0.0"
      *  \param pApi A pointer to a pointer variable that receives the API pointer.
-     *  \param retrievedVersion A pointer to a `SemanticVersion` structure that recieves version
-     *      information of the recieved version.
-     *  \return An error code if an error occured, otherwise `0`.
+     *  \param retrievedVersion A pointer to a `SemanticVersion` structure that receives version
+     *      information of the received version.
+     *  \return An error code if an error occurred, otherwise `0`.
      */
     int32_t __stdcall (*RetrieveModApi)(
         GearLoaderContext* ctx,
@@ -89,7 +89,7 @@ typedef struct GearLoaderApi {
      *  \param api A pointer the the API struct to be registered.
      *  \param name The name of the registered API. This same name will need to be passed to `RetrieveModApi`.
      *  \param version The version of the registered API. Used when resolving the version constraint passed to `RetrieveModApi`.
-     *  \return An error code if an error occured, otherwise `0`.
+     *  \return An error code if an error occurred, otherwise `0`.
      */
     int32_t __stdcall (*RegisterApi)(
         GearLoaderContext* ctx,
@@ -108,7 +108,7 @@ typedef struct GearLoaderApi {
      *  \param logLevel Enum `GearLoaderLogLevel`. Verbose calls only get logged when running with the
      *      `-GearLoaderVerbose` launch option.
      *  \param str The string to be logged.
-     *  \return An error code if an error occured, otherwise `0`.
+     *  \return An error code if an error occurred, otherwise `0`.
      */
     uint32_t __stdcall (*Log)(
         GearLoaderContext* ctx,

@@ -16,7 +16,8 @@ using namespace DirectX;
 
 namespace ACPRHitboxes {
     inline bool ShouldRender(BaseMod::Api* bmApi) {
-        return bmApi->GameData.IsInGame();
+        return bmApi->GameData.IsInGame() &&
+            bmApi->GameData.GetCamera().size().x != 0;
     }
     inline bool ShouldHideHurtBoxes(GGXXACPR_Entity* e) {
         constexpr uint32_t mask = ACTION_STATE_STRIKE_INVLUN & ACTION_STATE_PROJECTILE_INVULN & ACTION_STATE_DISABLE_HURTBOXES;
@@ -240,7 +241,7 @@ namespace ACPRHitboxes {
         ggxxacpr::Entity headNode = api->GameData.GetRootEntity();
 
         for (int i = 0; i < 2; i++) {
-            if (hide && (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
 
             auto p = api->GameData.GetPlayer(i);
             if (!p.isValid()) continue;
@@ -267,7 +268,7 @@ namespace ACPRHitboxes {
         ggxxacpr::GameVersion gameVer = api->GameData.GetGameVersion();
 
         for (int i = 0; i < 2; i++) {
-            if (hide & (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
             ggxxacpr::Player p = api->GameData.GetPlayer(i);
             if (!p.isValid()) continue;
             
@@ -372,7 +373,7 @@ namespace ACPRHitboxes {
         int hide = SettingsManager::GetInstance().HidePlayer;
         auto cam = api->GameData.GetCamera();
         for (int i = 0; i < 2; i++) {
-            if (hide & (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
             auto player = api->GameData.GetPlayer(i);
             if (!player.isValid()) continue;
 
@@ -414,7 +415,7 @@ namespace ACPRHitboxes {
         auto cam = api->GameData.GetCamera();
         
         for (int i = 0; i < 2; i++) {
-            if (hide & (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
 
             auto p = api->GameData.GetPlayer(i);
             auto opp = api->GameData.GetPlayer(1-i);
@@ -451,7 +452,7 @@ namespace ACPRHitboxes {
         D3DCOLOR color = settings.Palette.Grab;
 
         for (int i = 0; i < 2; i++) {
-            if (hide & (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
             auto p = api->GameData.GetPlayer(i);
             if (!p.isValid()) continue;
 
@@ -516,7 +517,7 @@ namespace ACPRHitboxes {
         
         // Draw
         for (int i = 0; i < 2; i++) {
-            if (hide & (i+1) != 0) continue;
+            if ((hide & (i+1)) != 0) continue;
             auto player = api->GameData.GetPlayer(i);
             if (!player.isValid()) continue;
             auto camera  = api->GameData.GetCamera();

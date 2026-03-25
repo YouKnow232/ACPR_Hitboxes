@@ -5,7 +5,7 @@
 *  This header is included by `baseMod.hpp`. If you're forgoing the basemod
 *  include this header instead to interface with the game directly.
 *
-* GearLoader Develeopers:
+* GearLoader Developers:
 *  This should only alias types from `ggxxacpr_c.h` and define helper classes/methods
 *  This should not include any ABI additions.
 *--------------------------------------------------------------------------------------------------*/
@@ -25,6 +25,17 @@
 namespace ggxxacpr {
 
     /* ========== #ENUMS ========== */
+
+    enum class Language : uint32_t {
+        JPN = ACPR_LANG_JPN,
+        ENG = ACPR_LANG_ENG,
+        FRA = ACPR_LANG_FRA,
+        ITA = ACPR_LANG_ITA,
+        GER = ACPR_LANG_GER,
+        POR = ACPR_LANG_POR,
+        SPA = ACPR_LANG_SPA,
+        KOR = ACPR_LANG_KOR
+    };
 
     enum class GameVersion : uint32_t {
         ACCENT_CORE = GAME_VERSION_ACCENT_CORE,
@@ -162,7 +173,7 @@ namespace ggxxacpr {
         TESTAMENT_ENTITY_CROW = ENTITY_ID_TESTAMENT_ENTITY_CROW,
         JOHNNY_ENTITY_COIN = ENTITY_ID_JOHNNY_ENTITY_COIN,
         I_NO_ENTITY = ENTITY_ID_I_NO_ENTITY,
-        ZAPP_ENTITY_RAOU = ENTITY_ID_ZAPPA_ENTITY_RAOU,
+        ZAPPA_ENTITY_RAOU = ENTITY_ID_ZAPPA_ENTITY_RAOU,
         SLAYER_ENTITY = ENTITY_ID_SLAYER_ENTITY,
         ZAPPA_ENTITY = ENTITY_ID_ZAPPA_ENTITY,
         ZAPPA_ENTITY_TRIPLETS = ENTITY_ID_ZAPPA_ENTITY_TRIPLETS,
@@ -265,7 +276,7 @@ namespace ggxxacpr {
     /* ========== #BITFIELD ENUMS ========== */
     enum class ActionState : uint32_t {
             NONE = ACTION_STATE_NONE,
-            IS_ENTITY = ACTION_STATE_IS_ENTITY, /* Typically always set unless the enity is despawning */
+            IS_ENTITY = ACTION_STATE_IS_ENTITY, /* Typically always set unless the entity is despawning */
             COLLIDES_WITH_P2 = ACTION_STATE_COLLIDES_WITH_P2,
             COLLIDES_WITH_P1 = ACTION_STATE_COLLIDES_WITH_P1,
             DRAW_SPRITE = ACTION_STATE_DRAW_SPRITE,
@@ -279,7 +290,7 @@ namespace ggxxacpr {
             IS_CORNERED = ACTION_STATE_IS_CORNERED,
             LANDING_FLAG = ACTION_STATE_LANDING_FLAG,
             IS_AT_SCREEN_LIMIT = ACTION_STATE_IS_AT_SCREEN_LIMIT, /* Bounded by screen edge, but not necessarily cornered */
-            PROJECTILE_INVULN = ACTION_STATE_PROJECTILE_INVULN, /* A legacy value, that's mainly used in throw animations as a sort of invlun flag. */
+            PROJECTILE_INVULN = ACTION_STATE_PROJECTILE_INVULN, /* A legacy value, that's mainly used in throw animations as a sort of invuln flag. */
             WAKEUP = ACTION_STATE_WAKEUP,
             DISABLE_WAKEUP = ACTION_STATE_DISABLE_WAKEUP,  /* Set at round end for the KO'd player. */
             STRIKE_INVLUN = ACTION_STATE_STRIKE_INVLUN,
@@ -472,6 +483,17 @@ namespace ggxxacpr {
         return a;
     }
 
+    /* ========== #STRUCT USINGS ========== */
+
+    using LocaleState = GGXXACPR_LocaleState;
+    using FiberData = GGXXACPR_FiberData;
+    using PlayerInput = GGXXACPR_PlayerInput;
+    using Collider = GGXXACPR_Collider;
+    using ActionHeader = GGXXACPR_ActionHeader;
+    using HitParam = GGXXACPR_HitParam;
+    using DamageParam = GGXXACPR_DamageParam;
+    using Screenshake = GGXXACPR_Screenshake;
+    using DrawSpriteParams = GGXXACPR_DrawSpriteParams;
 
     /* ========== #VIEWS ========== */
 
@@ -489,7 +511,7 @@ namespace ggxxacpr {
      *  Model space is always relative to the model in question. For example, hitbox
      *      offsets and dimensions are given in model coordinates with the model
      *      being the player that owns them. The player's position is always
-     *      coorindate [0,0] in model coordinates. Unlike world coordinates, up is
+     *      coordinate [0,0] in model coordinates. Unlike world coordinates, up is
      *      positive. Model coordinates typically translate to world coordinates at
      *      a ratio of 1:100 subject to the model's scale property.
      */
@@ -875,7 +897,6 @@ namespace ggxxacpr {
     private:
         GGXXACPR_Entity *raw;
     };
-
 }
 
 #endif

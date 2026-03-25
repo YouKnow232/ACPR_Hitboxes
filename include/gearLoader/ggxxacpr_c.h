@@ -277,7 +277,7 @@ enum GGXXACPR_ColliderId {
 
 enum GGXXACPR_ActionState {
     ACTION_STATE_NONE = 0x0,
-    ACTION_STATE_IS_ENTITY = 0x1, /* Typically always set unless the enity is despawning */
+    ACTION_STATE_IS_ENTITY = 0x1, /* Typically always set unless the entity is despawning */
     ACTION_STATE_COLLIDES_WITH_P2 = 0x2,
     ACTION_STATE_COLLIDES_WITH_P1 = 0x4,
     ACTION_STATE_DRAW_SPRITE = 0x8,
@@ -291,7 +291,7 @@ enum GGXXACPR_ActionState {
     ACTION_STATE_IS_CORNERED = 0x800,
     ACTION_STATE_LANDING_FLAG = 0x1000,
     ACTION_STATE_IS_AT_SCREEN_LIMIT = 0x2000, /* Bounded by screen edge, but not necessarily cornered */
-    ACTION_STATE_PROJECTILE_INVULN = 0x4000, /* A legacy value, that's mainly used in throw animations as a sort of invlun flag. */
+    ACTION_STATE_PROJECTILE_INVULN = 0x4000, /* A legacy value, that's mainly used in throw animations as a sort of invuln flag. */
     ACTION_STATE_WAKEUP = 0x8000,
     ACTION_STATE_DISABLE_WAKEUP = 0x10000,  /* Set at round end for the KO'd player. */
     ACTION_STATE_STRIKE_INVLUN = 0x20000,
@@ -442,8 +442,67 @@ enum GGXXACPR_RawControllerInput {
     INPUT_LEFT_FACE = 0x8000,
 };
 
+enum GGXXACPR_Language {
+    ACPR_LANG_JPN,
+    ACPR_LANG_ENG,
+    ACPR_LANG_FRA,
+    ACPR_LANG_ITA,
+    ACPR_LANG_GER,
+    ACPR_LANG_POR,
+    ACPR_LANG_SPA,
+    ACPR_LANG_KOR
+};
 
 /* ========== #STRUCTS ========== */
+
+typedef struct GGXXACPR_LocaleState {
+    uint32_t Language;      // enum `GGXXACPR_Language`
+    uint32_t Format;        // Unknown, string format maybe
+    uint8_t Buffer[0x600];  // String buffer. Size may be larger
+} GGXXACPR_LocaleState;
+static_assert(sizeof(GGXXACPR_LocaleState) == 0x608);
+
+typedef struct GGXXACPR_FiberData {
+    int32_t State;
+    int32_t Waiting;
+    uint32_t StackSize;
+    int32_t UNKNOWN_FIELD(0x0C);
+    uint32_t Flags;
+    int32_t UNKNOWN_FIELD(0x14);
+    char Name[24];
+    void* EntryPoint;
+    void* Handle;
+    PAD(28, 0x38);
+} GGXXACPR_FiberData;
+static_assert(sizeof(GGXXACPR_FiberData) == 0x54);
+
+typedef struct GGXXACPR_PlayerInput {
+    uint32_t InputAccepted;   // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputRaw;        // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputPressed;    // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputDelta;      // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputUnaccepted; // enum `GGXXACPR_RawControllerInput`
+    int32_t SelectCharge;
+    int32_t L3Charge;
+    int32_t R3Charge;
+    int32_t StartCharge;
+    int32_t UpCharge;
+    int32_t RightCharge;
+    int32_t DownCharge;
+    int32_t LeftCharge;
+    int32_t L2Charge;
+    int32_t R2Charge;
+    int32_t L1Charge;
+    int32_t R1Charge;
+    int32_t TopFaceCharge;
+    int32_t RightFaceCharge;
+    int32_t BottomFaceCharge;
+    int32_t LeftFaceCharge;
+    PAD(0x40, 0x54);
+    uint8_t isActive;
+    PAD(3, 0x95);
+} GGXXACPR_PlayerInput;
+static_assert(sizeof(GGXXACPR_PlayerInput) == 0x98);
 
 typedef struct GGXXACPR_Collider {
     int16_t xOffset;
@@ -567,7 +626,7 @@ static_assert(offsetof(GGXXACPR_Camera, playerCenterPointX) == 0x7C);
 static_assert(sizeof(GGXXACPR_Camera) == 0x9C);
 
 
-// A sub-struct that contains data exclusive to player entities (as opposed to more generic entitiy data).
+// A sub-struct that contains data exclusive to player entities (as opposed to more generic entity data).
 typedef struct GGXXACPR_PlayerData {
     // Range: [0, 10000]
     uint16_t tension;
@@ -652,7 +711,7 @@ typedef struct GGXXACPR_PlayerData {
     uint8_t jamParry;
     uint8_t jamParryTime;
     PAD(27, 0x91);
-    uint32_t hitstunFlags; /* SlidingKD, wallbounce, etc */
+    uint32_t hitstunFlags; /* SlidingKD, wall bounce, etc */
     uint32_t UNKNOWN_FIELD(0xB0); /* RE note: Child?*/
     uint32_t atkHitInterrupt;
     uint32_t atkGuardInterrupt;
@@ -883,6 +942,29 @@ static_assert(offsetof(GGXXACPR_Entity, speedsvX) == 0xC0);
 static_assert(offsetof(GGXXACPR_Entity, trans) == 0x100);
 static_assert(sizeof(GGXXACPR_Entity) == 0x130);
 
+/**
+ *  A parameter struct used for drawing sprites.
+ */
+typedef struct GGXXACPR_DrawSpriteParams {
+    int32_t spriteId;
+    float x, y, z;
+    float zm_x, zm_y;
+    float u0, v0, u1, v1;
+    int32_t angle;
+    float trans1;
+    int16_t listType;
+    uint16_t attribute;
+    int32_t base_color;
+    int32_t offset_color;
+    int32_t size_x;
+    int32_t size_y;
+    int32_t texture;
+} GGXXACPR_DrawSpriteParams;
+/* Struct layout sanity checks */
+static_assert(offsetof(GGXXACPR_DrawSpriteParams, z) == 0x0C);
+static_assert(offsetof(GGXXACPR_DrawSpriteParams, v0) == 0x1C);
+static_assert(offsetof(GGXXACPR_DrawSpriteParams, v1) == 0x24);
+static_assert(sizeof(GGXXACPR_DrawSpriteParams) == 0x48);
 
 #undef UNKNOWN_FIELD
 #undef PAD
