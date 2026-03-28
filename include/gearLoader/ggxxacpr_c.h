@@ -477,11 +477,11 @@ typedef struct GGXXACPR_FiberData {
 static_assert(sizeof(GGXXACPR_FiberData) == 0x54);
 
 typedef struct GGXXACPR_PlayerInput {
-    uint32_t InputAccepted;   // enum `GGXXACPR_RawControllerInput`
-    uint32_t InputRaw;        // enum `GGXXACPR_RawControllerInput`
-    uint32_t InputPressed;    // enum `GGXXACPR_RawControllerInput`
-    uint32_t InputDelta;      // enum `GGXXACPR_RawControllerInput`
-    uint32_t InputUnaccepted; // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputRaw1;     // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputRaw2;     // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputPress1;   // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputPress2;   // enum `GGXXACPR_RawControllerInput`
+    uint32_t InputRelease;  // enum `GGXXACPR_RawControllerInput`
     int32_t SelectCharge;
     int32_t L3Charge;
     int32_t R3Charge;

@@ -44,6 +44,7 @@ namespace BaseMod {
         bool VersionError() {
             return (BASEMOD_API_VERSION_NUM & 0xFF0000) != (_ref->version & 0xFF0000);
         }
+        const BaseMod_NativeFunctionsApi* GetCApi() { return _ref; }
 
         /**
          *  \brief Draws text to the screen during battle using the game's text glyph system.
@@ -139,6 +140,7 @@ namespace BaseMod {
         bool VersionError() {
             return (BASEMOD_API_VERSION_NUM & 0xFF0000) != (_ref->version & 0xFF0000);
         }
+        const BaseMod_CharDataApi* GetCApi() { return _ref; }
 
         uint16_t* GetPushboxDimensionArray(PushboxDimensionArrayType type) {
             return _ref->GetPushboxDimensionArray(static_cast<int32_t>(type));
@@ -171,6 +173,7 @@ namespace BaseMod {
         bool VersionError() {
             return (BASEMOD_API_VERSION_NUM & 0xFF0000) != (_ref->version & 0xFF0000);
         }
+        const BaseMod_GameDataApi* GetCApi() { return _ref; }
 
         CharDataApi CharacterData;
 
@@ -195,55 +198,49 @@ namespace BaseMod {
         /**
          *  \brief returns a non-zero value if the game is on the battle screen.
          */
-        bool IsInGame() {
-            return _ref->IsInGame() > 0;
-        }
+        bool IsInGame() { return _ref->IsInGame() > 0; }
         /**
          *  \brief Returns a pointer to the current job mode, see enum `GGXXACPR_JobMode`. This variable
          *      determines what scene the game is set to such as "TitleScreen", "Battle", "MissionMenu".
          */
-        ggxxacpr::JobMode GetJobMode() {
-            return static_cast<ggxxacpr::JobMode>(_ref->GetJobMode());
-        }
+        ggxxacpr::JobMode GetJobMode() { return static_cast<ggxxacpr::JobMode>(_ref->GetJobMode()); }
         /**
          *  \brief See enum `GGXXACPR_GameModeFeatureFlags`. Returns the current game mode feature flags.
          */
-        ggxxacpr::GameModeFeatureFlags GetGameModeFeatureFlags() {
-            return static_cast<ggxxacpr::GameModeFeatureFlags>(_ref->GetGameModeFeatureFlags());
-        }
+        ggxxacpr::GameModeFeatureFlags GetGameModeFeatureFlags() { return static_cast<ggxxacpr::GameModeFeatureFlags>(_ref->GetGameModeFeatureFlags()); }
         /**
          *  \brief Enum `GGXXACPR_MainMenuItem`. Returns the item selected from the main menu.
          * 
          *  This value defaults to MAIN_MENU_ITEM_ARCADE and is
          *      set when selecting an option on the main menu.
          */
-        ggxxacpr::MenuItem GetMainMenuSelection() {
-            return static_cast<ggxxacpr::MenuItem>(_ref->GetMainMenuSelection());
-        }
+        ggxxacpr::MenuItem GetMainMenuSelection() { return static_cast<ggxxacpr::MenuItem>(_ref->GetMainMenuSelection()); }
         /**
          *  \brief Returns the D3D9 device pointer.
          * 
          *  Include `d3d9.h` and cast to IDirect3DDevice9 to use. This is
          *      a borrowed pointer. Do not call `Release()`.
          */
-        void* GetD3D9Device() {
-            return _ref->GetD3D9Device();
-        }
-        ggxxacpr::GameVersion GetGameVersion() {
-            return static_cast<ggxxacpr::GameVersion>(_ref->GetGameVersion());
-        }
-        uint32_t GetViewWidth() {
-            return _ref->GetViewWidth();
-        }
-        uint32_t GetViewHeight() {
-            return _ref->GetViewHeight();
-        }
-        ggxxacpr::Entity GetRootEntity() {
-            return ggxxacpr::Entity(_ref->GetRootEntity());
-        }
-        uint32_t GetGlobalThrowFlags() {
-            return _ref->GetGlobalThrowFlags();
-        }
+        void* GetD3D9Device() { return _ref->GetD3D9Device(); }
+        ggxxacpr::GameVersion GetGameVersion() { return static_cast<ggxxacpr::GameVersion>(_ref->GetGameVersion()); }
+        uint32_t GetViewWidth() { return _ref->GetViewWidth(); }
+        uint32_t GetViewHeight() { return _ref->GetViewHeight(); }
+        ggxxacpr::Entity GetRootEntity() { return ggxxacpr::Entity(_ref->GetRootEntity()); }
+        uint32_t GetGlobalThrowFlags() { return _ref->GetGlobalThrowFlags(); }
+        /**
+         *  \brief Returns the pause state.
+         * 
+         *  The game is paused if this value is non zero. In training mode, this variable transitions from 0 to 1 to 2 when pausing.
+         */
+        int32_t GetPauseState() { return *_ref->GetPauseState(); }
+        /**
+         *  \brief Gets a pointer to the player input struct array. See `GGXXACPR_PlayerInput`.
+         */
+        GGXXACPR_PlayerInput* GetPlayerInputStructArr() { return _ref->GetPlayerInputStructArr(); }
+        /**
+         *  \brief Gets a pointer to the game's locale state. see `GGXXACPR_LocaleState`.
+         */
+        GGXXACPR_LocaleState* GetLocaleState() { return _ref->GetLocaleState(); }
     private:
         const BaseMod_GameDataApi* _ref;
     };
@@ -266,6 +263,7 @@ namespace BaseMod {
         bool VersionError() {
             return (BASEMOD_API_VERSION_NUM & 0xFF0000) != (_ref->version & 0xFF0000);
         }
+        const BaseMod_HookApi* GetCApi() { return _ref; }
         /**
          *  \brief Registers a hook to the PeekMessage hook.
          * 
@@ -433,6 +431,9 @@ namespace BaseMod {
         const BaseMod_HookApi* _ref;
     };
 
+    using MenuAction = BM_MenuAction;
+    using ValueChangeCallback = BM_ValueChangeCallback;
+    using CustomMenuHandler = BM_CustomMenuHandler;
     using ModMenuEntry = BaseMod_ModMenuEntry;
     class ModMenuApi {
     public:
@@ -446,8 +447,12 @@ namespace BaseMod {
          *      See `BaseMod_ModMenuEntry`. Callers must maintain the lifetime of values in the declaration.
          *  \return 0 if no error, else an error code.
          */
+        const BaseMod_ModMenuApi* GetCApi() { return _ref; }
         uint32_t RegisterMenuTab(const char* title, const ModMenuEntry* entries, uint32_t numEntries) {
             return _ref->RegisterMenuTab(title, entries, numEntries);
+        }
+        uint32_t RegisterCustomMenuTab(const char* title, CustomMenuHandler handler) {
+            return _ref->RegisterCustomMenuTab(title, handler);
         }
 
     private:
@@ -476,6 +481,7 @@ namespace BaseMod {
             return (BASEMOD_API_VERSION_NUM & BASEMOD_MAJOR_VERSION_MASK) !=
                 (_ref->version & BASEMOD_MAJOR_VERSION_MASK);
         }
+        const BaseMod_Api* GetCApi() { return _ref; }
         /// \brief API for invoking native game functions
         NativeFunctionsApi NativeFunctions;
         /// \brief Access to notable game data

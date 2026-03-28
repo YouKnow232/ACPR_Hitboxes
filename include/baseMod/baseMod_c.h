@@ -5,6 +5,7 @@
 #define BASEMOD_API_VERSION "0.1.0"
 #define BASEMOD_API_VERSION_NUM 0x000100
 #define BASEMOD_MAJOR_VERSION_MASK 0xFF0000
+#define BASEMOD_CALL __stdcall
 
 #ifdef __cplusplus
     #include <cstdint>
@@ -68,7 +69,7 @@ struct BaseMod_NativeFunctionsApi {
      *  See `GGXXACPR_DrawSpriteParams`
      * 
      *  \param params Combined parameter struct
-     *  \param flag Unkown
+     *  \param flag Unknown
      */
     uint32_t __stdcall (* DrawSprite)(GGXXACPR_DrawSpriteParams* params, int32_t flag);
 
@@ -224,6 +225,21 @@ struct BaseMod_GameDataApi {
      *  \brief API for accessing static character data.
      */
     const struct BaseMod_CharDataApi* CharacterData;
+
+    /**
+     *  \brief Gets a pointer to the pause state global variable.
+     * 
+     *  The game is paused if this value is non zero. In training mode, this variable transitions from 0 to 1 to 2 when pausing.
+     */
+    int32_t* __stdcall(*GetPauseState)();
+    /**
+     *  \brief Gets a pointer to the player input struct array. See `GGXXACPR_PlayerInput`.
+     */
+    GGXXACPR_PlayerInput* __stdcall(*GetPlayerInputStructArr)();
+    /**
+     *  \brief Gets a pointer to the game's locale state. see `GGXXACPR_LocaleState`.
+     */
+    GGXXACPR_LocaleState* __stdcall(*GetLocaleState)();
 };
 
 typedef uint32_t BaseMod_HookId;
@@ -327,6 +343,10 @@ struct BaseMod_HookApi {
     uint32_t __stdcall (*RemoveHook)(BaseMod_HookId id);
 };
 
+
+typedef void (BASEMOD_CALL *BM_MenuAction)();
+typedef void (BASEMOD_CALL *BM_ValueChangeCallback)(int32_t value);
+typedef void (BASEMOD_CALL *BM_CustomMenuHandler)(GGXXACPR_PlayerInput* inputArr);
 /**
  *  @brief Represents a mod menu entry.
  * 
@@ -346,14 +366,14 @@ struct BaseMod_HookApi {
  *  Number Line and Enum Value type entries may also have a command function.
  */
 typedef struct BaseMod_ModMenuEntry {
-    // Primary label.
+    // Primary label. Unlike `ValueLabels` strings, lower case letters are allowed.
     const char* Label;
     // Real value behind the setting. This value will be read and written to.
     int32_t* Value;
     // Inclusive
     int32_t MinValue;
     // Inclusive. Maximum value for Number Line and maximum index for value
-    //  labels (i.e. max enum value-1). Getting this value wrong will can cause crashes.
+    //  labels (i.e. `ValueLabel` size - 1). Getting this value wrong can cause crashes!
     int32_t MaxValue;
     /**
      * \brief A list of labels to assign to each value.
@@ -362,10 +382,13 @@ typedef struct BaseMod_ModMenuEntry {
      *      restrictions apply. see `BaseMod_NativeFunctionsApi::RenderText` for details.
      */
     const char** ValueLabels;
-    // Function to execute when selected.
-    void (__stdcall *Command)();
+    // Optional command callback when entry is selected and pressed
+    BM_MenuAction Command;
+    // Optional value changed callback. Can be used to update other values based on the entry `Value`.
+    BM_ValueChangeCallback ValueChanged;
 } BaseMod_ModMenuEntry;
 
+// Add options to mod menu
 struct BaseMod_ModMenuApi {
     /// \brief The size of the struct in bytes
     uint32_t size;
@@ -387,6 +410,16 @@ struct BaseMod_ModMenuApi {
      *  \return 0 if no error, else an error code.
      */
     uint32_t __stdcall (*RegisterMenuTab)(const char* title, const BaseMod_ModMenuEntry* entries, uint32_t numEntries);
+    /**
+     *  \brief Registers a custom menu handler function.
+     * 
+     *  \param title Tab name. Character limitations are similar to `BaseMod_NativeFunctionsApi::RenderText`
+     *  \param handler Custom menu handler function invoked by the Mod Menu Manager. This callback is invoked
+     *      after the Mod Menu handles fiber switching, tab switching, and exiting the menu, so there is no
+     *      need to implement that functionality in this callback. Refer to the source code at
+     *      `source/baseMod/modMenu/modMenu.cpp::ModMenu()` for help implementing your own handler.
+     */
+    uint32_t __stdcall (*RegisterCustomMenuTab)(const char* title, BM_CustomMenuHandler handler);
 };
 
 // Root struct for the base mod API. A pointer to an instance of
@@ -405,11 +438,11 @@ typedef struct BaseMod_Api {
     uint32_t version;
     /// \brief API for invoking native game functions
     const struct BaseMod_NativeFunctionsApi* NativeFunctions;
-    /// \brief Access to notable game data
+    /// \brief Curated access to game data
     const struct BaseMod_GameDataApi* GameData;
     /// \brief Function hooking manager
     const struct BaseMod_HookApi* Hooks;
-    /// \brief Add options to mod menu
+    /// \brief Add options to the mod menu
     const struct BaseMod_ModMenuApi* ModMenu;
 } BaseMod_Api;
 

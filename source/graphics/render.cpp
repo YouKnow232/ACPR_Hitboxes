@@ -17,6 +17,7 @@ using namespace DirectX;
 namespace ACPRHitboxes {
     inline bool ShouldRender(BaseMod::Api* bmApi) {
         return bmApi->GameData.IsInGame() &&
+            bmApi->GameData.GetPauseState() == 0 &&
             bmApi->GameData.GetCamera().size().x != 0;
     }
     inline bool ShouldHideHurtBoxes(GGXXACPR_Entity* e) {
