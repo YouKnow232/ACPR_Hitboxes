@@ -1,5 +1,5 @@
 #include <d3d9.h>
-#include "directx/directxmath.h"
+#include "directx/DirectXMath.h"
 #include "graphicsTypes.h"
 
 namespace ACPRHitboxes {

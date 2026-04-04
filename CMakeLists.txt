@@ -15,7 +15,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR})
 
-
 add_library(hitboxes SHARED
     source/source.cpp
     source/logging/logging.cpp
@@ -32,6 +31,10 @@ set_target_properties(hitboxes PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}/Hitboxes
     PREFIX ""
 )
+target_compile_options(hitboxes PRIVATE
+    "-msse2"
+)
+
 target_link_libraries(hitboxes
     d3d9
     d3dcompiler

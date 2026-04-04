@@ -1,6 +1,8 @@
 #include "render.h"
 #include <map>
-#include "directx/directxmath.h"
+#include <cstdint>
+#include "directx/DirectXMath.h"
+#include "baseMod/baseMod.hpp"
 #include "graphics.h"
 #include "gameData/hardCodedConstants.h"
 #include "gameData/gameData.h"
