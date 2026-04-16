@@ -17,9 +17,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR})
 
 add_library(hitboxes SHARED
     source/source.cpp
+    source/cleanHitRecorder/cleanHitRecorder.cpp
     source/logging/logging.cpp
+    source/dataStore/dataStore.cpp
     source/graphics/graphics.cpp
     source/graphics/render.cpp
+    source/settings/modMenu.cpp
     source/settings/settings.cpp
 )
 target_include_directories(hitboxes PRIVATE

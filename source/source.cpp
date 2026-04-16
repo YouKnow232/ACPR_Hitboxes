@@ -1,18 +1,27 @@
 #include "gearLoader/gearLoader.hpp"
 #include "baseMod/baseMod.hpp"
 
+#include "cleanHitRecorder/cleanHitRecorder.h"
 #include "logging/logging.h"
+#include "dataStore/dataStore.h"
 #include "graphics/graphics.h"
 #include "graphics/render.h"
 #include "settings/settings.h"
+#include "settings/modMenu.h"
 
 #include <iostream>
 
-using namespace ACPRHitboxes;
+// TODO:
+//  ABA throw box bug with air keygrab
+//  Slayer BSU throw range incorrect?
+//  Serialize settings
 
+using namespace ACPRHitboxes;
 
 static BaseMod::HookId renderHookId;
 static BaseMod::HookId clRecordHookId;
+
+static const char* settingsFile = "./mods/hitboxes/settings.ini";
 
 void __stdcall RenderHook(
     BaseMod::Api* bmApi,
@@ -22,26 +31,24 @@ void __stdcall RenderHook(
     RenderFrame(bmApi, reinterpret_cast<IDirect3DDevice9*>(info->device));
 }
 
-void __stdcall CleanHitRecordHit(
+void BASEMOD_CALL Save(
+    BaseMod::Api* bmApi,
+    const BaseMod::HookContext* ctx,
+    const BaseMod::SaveGameInfo* info
+) {
+    SaveSettingsToFile(settingsFile);
+}
+
+void __stdcall AfterUpdate(
     BaseMod::Api* bmApi,
     const BaseMod_HookContext* ctx,
     const BaseMod_GameUpdateInfo* info
 ) {
     if (!bmApi->GameData.IsInGame()) return;
-
-    // Hook CL func or something
-}
-
-inline void RegisterModMenu(BaseMod::ModMenuApi& api) {
-    auto& setting = SettingsManager::GetInstance();
-    static const char* displayLabels[4] =
-        {"ALL", "P2 ONLY", "P1 ONLY", "NONE"};
-
-    static const BaseMod::ModMenuEntry modMenuEntries[1] {
-        {"Display", &setting.HidePlayer, 0, 3, displayLabels, nullptr}
-    };
-
-    api.RegisterMenuTab("HITBOXES", modMenuEntries, 1);
+    auto p1 = bmApi->GameData.GetPlayer(0);
+    if (p1.isValid()) WatchHitstop(0, p1.hitstopTime());
+    auto p2 = bmApi->GameData.GetPlayer(1);
+    if (p2.isValid()) WatchHitstop(1, p2.hitstopTime());
 }
 
 GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderApi* api) {
@@ -61,11 +68,12 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
         return;
     }
 
-    BaseMod::Api* bmApi = new BaseMod::Api(baseModApi);
+    BaseMod::Api bmApi = SetBMApi(baseModApi);
+    BaseMod::Api* bmApiPtr = new BaseMod::Api(baseModApi);
 
-    LoadSettingsFromFile("./mods/hitboxes/settings.ini");
+    LoadSettingsFromFile(settingsFile);
 
-    int result = InitGraphics(reinterpret_cast<IDirect3DDevice9*>(bmApi->GameData.GetD3D9Device()));
+    int result = InitGraphics(reinterpret_cast<IDirect3DDevice9*>(bmApi.GameData.GetD3D9Device()));
     if (result != D3D_OK) {
         std::stringstream ss;
         ss << "Graphics failed to initiailze: 0x" << std::hex << result;
@@ -73,11 +81,12 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
         return;
     }
 
-    RegisterModMenu(bmApi->ModMenu);
+    RegisterModMenu(bmApi.ModMenu);
 
     // Register hooks
-    renderHookId = bmApi->Hooks.BeforePresent<BaseMod::Api>(RenderHook, bmApi);
-    clRecordHookId = bmApi->Hooks.AfterGameUpdate<BaseMod::Api>(CleanHitRecordHit, bmApi);
+    renderHookId = bmApi.Hooks.BeforePresent<BaseMod::Api>(RenderHook, bmApiPtr);
+    clRecordHookId = bmApi.Hooks.AfterGameUpdate<BaseMod::Api>(AfterUpdate, bmApiPtr);
+    SetCLHook();
 
     std::cout << "[Hitboxes] Initialized" << std::endl;
 }

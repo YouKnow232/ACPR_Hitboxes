@@ -77,7 +77,7 @@ int CommandThrowIsActive(ggxxacpr::Player& p) {
         {ggxxacpr::EntityId::ABA,       0x11B, 26}, // Unknown (Unused Air keygrab?) actId 283, cmdGrabId 26
     };
 
-    if (p.getRaw()->mark != 0)  {
+    if (p.getRaw()->mark == 1) {
         for (auto& entry : CommandGrabActIds) {
             if (entry.charId == p.id() && entry.actId == p.actId()) {
                 return entry.cmdGrabId;

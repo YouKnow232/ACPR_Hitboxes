@@ -942,6 +942,22 @@ static_assert(offsetof(GGXXACPR_Entity, speedsvX) == 0xC0);
 static_assert(offsetof(GGXXACPR_Entity, trans) == 0x100);
 static_assert(sizeof(GGXXACPR_Entity) == 0x130);
 
+#if defined(D3DCOLOR_DEFINED) && defined(D3DVECTOR_DEFINED)
+    typedef D3DVECTOR GGXXACPR_Vector;
+    typedef D3DCOLOR GGXXACPR_Color;
+#else
+    typedef struct GGXXACPR_Vector {
+        float x, y, z;
+    } GGXXACPR_Vector;
+    // Format is A8R8G8B8
+    typedef uint32_t GGXXACPR_Color;
+#endif
+
+typedef struct GGXXACPR_ColorVertex {
+    GGXXACPR_Vector Vector;
+    GGXXACPR_Color Color;
+} GGXXACPR_ColorVertex;
+
 /**
  *  A parameter struct used for drawing sprites.
  */

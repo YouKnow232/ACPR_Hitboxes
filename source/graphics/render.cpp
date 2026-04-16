@@ -6,20 +6,17 @@
 #include "graphics.h"
 #include "gameData/hardCodedConstants.h"
 #include "gameData/gameData.h"
+#include "cleanHitRecorder/cleanHitRecorder.h"
 #include "settings/settings.h"
 #include "logging/logging.h"
 
-// DEBUG TEMP
-#include <iostream>
-
-// TODO: cleanhit rollback counter for hitstop
-
 using namespace DirectX;
+
 
 namespace ACPRHitboxes {
     inline bool ShouldRender(BaseMod::Api* bmApi) {
         return bmApi->GameData.IsInGame() &&
-            bmApi->GameData.GetPauseState() == 0 &&
+            (bmApi->GameData.GetPauseState() == 0 || bmApi->GameData.GetPauseDisplayState() == 0) &&
             bmApi->GameData.GetCamera().size().x != 0;
     }
     inline bool ShouldHideHurtBoxes(GGXXACPR_Entity* e) {
@@ -240,6 +237,7 @@ namespace ACPRHitboxes {
     }
     void RenderMiscRanges(BaseMod::Api* api, IDirect3DDevice9* device) {
         auto& settings = SettingsManager::GetInstance();
+        if (settings.HideMiscRanges) return;
         int hide = settings.HidePlayer;
         ggxxacpr::Entity headNode = api->GameData.GetRootEntity();
 
@@ -264,6 +262,7 @@ namespace ACPRHitboxes {
         constexpr int bufferSize = 6;
         static Vertex buffer[bufferSize];
 
+        if (SettingsManager::GetInstance().HidePush) return;
         int hide = SettingsManager::GetInstance().HidePlayer;
         D3DCOLOR pushColor = SettingsManager::GetInstance().Palette.Push;
         D3DCOLOR noCollisionPushColor = pushColor & 0x00FFFFFF;
@@ -403,9 +402,11 @@ namespace ACPRHitboxes {
         }
     }
     void RenderHurtboxes(BaseMod::Api* api, IDirect3DDevice9* device) {
+        if (SettingsManager::GetInstance().HideHurt) return;
         RenderCollidersByType(api, device, ggxxacpr::ColliderId::HURT_BOX);
     }
     void RenderHitboxes(BaseMod::Api* api, IDirect3DDevice9* device) {
+        if (SettingsManager::GetInstance().HideHit) return;
         RenderCollidersByType(api, device, ggxxacpr::ColliderId::HIT_BOX);
     }
     void RenderCleanHitboxes(BaseMod::Api* api, IDirect3DDevice9* device) {
@@ -413,6 +414,7 @@ namespace ACPRHitboxes {
         static Vertex buffer[bufferSize];
 
         auto& settings = SettingsManager::GetInstance();
+        if (settings.HideCleanHit) return;
         int hide = settings.HidePlayer;
         auto color = settings.Palette.CLHitbox;
         auto cam = api->GameData.GetCamera();
@@ -427,7 +429,9 @@ namespace ACPRHitboxes {
             auto hp = reinterpret_cast<GGXXACPR_HitParam*>(p.getRaw()->hitParamPtr);
             if (hp == nullptr || hp->cleanHitCheckScale == -1) continue;
 
-            int shrinkage = opp.cleanHitCounter() * hp->cleanHitCheckScale;
+            int clCounter = opp.cleanHitCounter();
+            if (IsCLHitstop(opp.playerIndex())) clCounter--;
+            int shrinkage = clCounter * hp->cleanHitCheckScale;
             int scaledWidth = std::max(hp->cleanHitCheckHalfWidth - shrinkage, 1);
             int scaledheight = std::max(hp->cleanHitCheckHalfHeight - shrinkage, 1);
 
@@ -451,6 +455,7 @@ namespace ACPRHitboxes {
         static uint16_t* commandGrabRanges = api->GameData.CharacterData.GetCommandGrabRangeArray();
 
         auto& settings = SettingsManager::GetInstance();
+        if (settings.HideGrab) return;
         int hide = settings.HidePlayer;
         D3DCOLOR color = settings.Palette.Grab;
 
@@ -494,6 +499,7 @@ namespace ACPRHitboxes {
         static float curCrossThickness = 0.0f;
         
         SettingsManager& settings = SettingsManager::GetInstance();
+        if (settings.HidePivot) return;
         int hide = settings.HidePlayer;
         float sampledCrossSize = settings.PivotCrossSize;
         float sampledCrossThickness = settings.PivotCrossThickness;

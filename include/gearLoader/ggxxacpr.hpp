@@ -483,7 +483,7 @@ namespace ggxxacpr {
         return a;
     }
 
-    /* ========== #STRUCT USINGS ========== */
+    /* ========== #STRUCT ALIASING ========== */
 
     using LocaleState = GGXXACPR_LocaleState;
     using FiberData = GGXXACPR_FiberData;
@@ -493,6 +493,9 @@ namespace ggxxacpr {
     using HitParam = GGXXACPR_HitParam;
     using DamageParam = GGXXACPR_DamageParam;
     using Screenshake = GGXXACPR_Screenshake;
+    using Vector = GGXXACPR_Vector;
+    using Color = GGXXACPR_Color;
+    using ColorVertex = GGXXACPR_ColorVertex;
     using DrawSpriteParams = GGXXACPR_DrawSpriteParams;
 
     /* ========== #VIEWS ========== */
