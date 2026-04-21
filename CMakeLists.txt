@@ -15,20 +15,55 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR})
 
+include(FetchContent)
+
+set(CDT_USE_AS_COMPILED_LIBRARY OFF)
+FetchContent_Declare(
+    CDT
+    GIT_REPOSITORY https://github.com/artem-ogre/CDT.git
+    GIT_TAG 5a1d702a01b24b33555913b90934fe673d51fc0f # v1.4.4
+)
+set(CLIPPER2_EXAMPLES OFF)
+set(CLIPPER2_TESTS OFF)
+FetchContent_Declare(
+    Clipper2
+    GIT_REPOSITORY https://github.com/AngusJohnson/Clipper2.git
+    GIT_TAG 21ebba05db8894f0c7217ad35ea518080f324946 # v2.0.1
+)
+
+FetchContent_MakeAvailable(
+    CDT
+    Clipper2
+)
+
+message(STATUS "clipper2 source dir: ${clipper2_SOURCE_DIR}")
+
+add_library(Clipper2 STATIC
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/src/clipper.engine.cpp
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/src/clipper.offset.cpp
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/src/clipper.rectclip.cpp
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/src/clipper.triangulation.cpp
+)
+target_include_directories(Clipper2 PUBLIC
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/include
+)
+
 add_library(hitboxes SHARED
     source/source.cpp
     source/cleanHitRecorder/cleanHitRecorder.cpp
     source/logging/logging.cpp
     source/dataStore/dataStore.cpp
+    source/graphics/geometry.cpp
     source/graphics/graphics.cpp
     source/graphics/render.cpp
     source/settings/modMenu.cpp
-    source/settings/settings.cpp
 )
 target_include_directories(hitboxes PRIVATE
     include
     source
     third_party
+    ${cdt_SOURCE_DIR}/CDT/include
+    ${clipper2_SOURCE_DIR}/CPP/Clipper2Lib/include
 )
 set_target_properties(hitboxes PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}/Hitboxes
@@ -41,6 +76,7 @@ target_compile_options(hitboxes PRIVATE
 target_link_libraries(hitboxes
     d3d9
     d3dcompiler
+    Clipper2
 )
 target_link_options(hitboxes PRIVATE
     -static

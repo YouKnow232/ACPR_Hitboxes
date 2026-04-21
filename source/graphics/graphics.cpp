@@ -133,8 +133,8 @@ namespace ACPRHitboxes {
         CheckError(result, "Set D3DRS_DESTBLEN failed");
         result = device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
         CheckError(result, "Set D3DRS_BLENDOP failed");
-        // result = device->SetRenderState(D3DRS_SCISSORTESTENABLE, /* check settings*/ FALSE);
-        // CheckError(result, "");
+        result = device->SetRenderState(D3DRS_SCISSORTESTENABLE, SettingsManager::GetInstance().WidescreenClipping);
+        CheckError(result, "Set D3DRS_SCISSORTESTENABLE failed");
         result = device->SetVertexDeclaration(vertDeclaration);
         CheckError(result, "Set vert declaration failed");
         result = device->SetStreamSource(0, vertBuffer, 0, sizeof(Vertex));

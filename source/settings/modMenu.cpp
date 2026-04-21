@@ -6,8 +6,6 @@
 #include "settings.h"
 #include "dataStore/dataStore.h"
 
-// TEMP DEBUG
-#include <iostream>
 
 using namespace ACPRHitboxes;
 using Input = ggxxacpr::RawControllerInput;
@@ -44,6 +42,7 @@ enum Setting {
     DISPLAY,
     THROW_BOXES,
     COMBINE,
+    OPACITY,
     BORDER,
     PIVOT_SIZE,
     PIVOT_THICKNESS,
@@ -101,6 +100,7 @@ inline void UpdateMenuEntryValues(MenuEntry* entries, SettingsManager& settings)
     entries[DISPLAY].value = settings.HidePlayer;
     entries[THROW_BOXES].value = settings.AlwaysDisplayThrowRange;
     entries[COMBINE].value = settings.CombineBoxes;
+    entries[OPACITY].value = settings.Palette.Alpha;
     entries[BORDER].value = settings.HitboxBorderThickness;
     entries[PIVOT_SIZE].value = settings.PivotCrossSize;
     entries[PIVOT_THICKNESS].value = settings.PivotCrossThickness;
@@ -115,7 +115,7 @@ inline void UpdateMenuEntryValues(MenuEntry* entries, SettingsManager& settings)
 }
 
 void BASEMOD_CALL CustomMenuHandler(ggxxacpr::PlayerInput* inputArr) {
-    constexpr int numEntries = 16;
+    constexpr int numEntries = 17;
     constexpr int margin = 24;
     constexpr int entrySpacing = 32;
     constexpr float zPos = 4.0f;
@@ -126,7 +126,8 @@ void BASEMOD_CALL CustomMenuHandler(ggxxacpr::PlayerInput* inputArr) {
         {"DISPLAY", {"ALL", "P2 ONLY", "P1 ONLY", "NONE"}, settings.HidePlayer, 3},
         {"THROW BOXES", {"NORMAL", "ALWAYS"}, settings.AlwaysDisplayThrowRange, 1},
         {"COMBINE BOXES", {"OFF", "ON"}, settings.CombineBoxes, 1},
-        {"BORDER SIZE", {}, static_cast<int>(settings.HitboxBorderThickness), 50},
+        {"OPACITY", {}, static_cast<int>(settings.Palette.Alpha), 255},
+        {"BORDER SIZE", {}, static_cast<int>(settings.HitboxBorderThickness), 100},
         {"PIVOT SIZE", {}, static_cast<int>(settings.PivotCrossSize), 100},
         {"PIVOT THICKNESS", {}, static_cast<int>(settings.PivotCrossThickness), 20},
         {"WIDESCREEN CLIP", {"OFF", "ON"}, settings.WidescreenClipping, 1},
@@ -150,7 +151,7 @@ void BASEMOD_CALL CustomMenuHandler(ggxxacpr::PlayerInput* inputArr) {
         Selection:      0,
         ScrollOffset:   0,
         MaxEntries:     numEntries,
-        MaxDisplayable: (static_cast<int>(dim.bottom - dim.top - margin * 2) / entrySpacing) + 1
+        MaxDisplayable: (static_cast<int>(dim.bottom - dim.top - margin * 2) / entrySpacing)
     };
 
     menuState.UpdateScrollingSelection(api.ModMenu.HelperFunctions.SelectionHandler(menuState.Selection, numEntries));
@@ -192,6 +193,9 @@ void BASEMOD_CALL CustomMenuHandler(ggxxacpr::PlayerInput* inputArr) {
                 break;
             case COMBINE:
                 settings.CombineBoxes = entry.value;
+                break;
+            case OPACITY:
+                settings.Palette.Alpha = entry.value;
                 break;
             case BORDER:
                 settings.HitboxBorderThickness = static_cast<float>(entry.value);
@@ -291,14 +295,5 @@ void BASEMOD_CALL CustomMenuHandler(ggxxacpr::PlayerInput* inputArr) {
 }
 
 void RegisterModMenu(BaseMod::ModMenuApi& api) {
-    auto& setting = SettingsManager::GetInstance();
-    static const char* displayLabels[4] =
-        {"ALL", "P2 ONLY", "P1 ONLY", "NONE"};
-
-    static const BaseMod::ModMenuEntry modMenuEntries[1] {
-        {"Display", &setting.HidePlayer, 0, 3, displayLabels, nullptr}
-    };
-
-    // api.RegisterMenuTab("HITBOXES", modMenuEntries, 1);
-    api.RegisterCustomMenuTab("HITBOXES CUSTOM", CustomMenuHandler);
+    api.RegisterCustomMenuTab("HITBOXES", CustomMenuHandler);
 }

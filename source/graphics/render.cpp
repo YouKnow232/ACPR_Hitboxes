@@ -4,6 +4,7 @@
 #include "directx/DirectXMath.h"
 #include "baseMod/baseMod.hpp"
 #include "graphics.h"
+#include "geometry.h"
 #include "gameData/hardCodedConstants.h"
 #include "gameData/gameData.h"
 #include "cleanHitRecorder/cleanHitRecorder.h"
@@ -14,6 +15,9 @@ using namespace DirectX;
 
 
 namespace ACPRHitboxes {
+    
+    /* ==================== Helper functions ==================== */
+
     inline bool ShouldRender(BaseMod::Api* bmApi) {
         return bmApi->GameData.IsInGame() &&
             (bmApi->GameData.GetPauseState() == 0 || bmApi->GameData.GetPauseDisplayState() == 0) &&
@@ -136,6 +140,10 @@ namespace ACPRHitboxes {
         return matrix;
     }
 
+    inline D3DCOLOR ApplyAlpha(D3DCOLOR baseColor) {
+        return baseColor | (SettingsManager::GetInstance().Palette.Alpha << 24);
+    }
+
     /* ==================== Draw delegates functions ==================== */
 
     inline ggxxacpr::WorldCoordinate GetProximityDimensions(BaseMod::Api* api, ggxxacpr::Player& p) {
@@ -206,7 +214,7 @@ namespace ACPRHitboxes {
 
         LoadVertBufferWithQuad(buffer,
             -proxDim.x, proxDim.x, proxDim.y, 0.0f,
-            SettingsManager::GetInstance().Palette.MiscPushRange
+            ApplyAlpha(SettingsManager::GetInstance().Palette.MiscPushRange)
         );
 
         auto cam = api->GameData.GetCamera();
@@ -225,7 +233,7 @@ namespace ACPRHitboxes {
 
         LoadVertBufferWithQuad(buffer,
             -proxDim.x, proxDim.x, proxDim.y, 0.0f,
-            SettingsManager::GetInstance().Palette.MiscPivotRange
+            ApplyAlpha(SettingsManager::GetInstance().Palette.MiscPivotRange)
         );
 
         auto cam = api->GameData.GetCamera();
@@ -262,9 +270,10 @@ namespace ACPRHitboxes {
         constexpr int bufferSize = 6;
         static Vertex buffer[bufferSize];
 
-        if (SettingsManager::GetInstance().HidePush) return;
-        int hide = SettingsManager::GetInstance().HidePlayer;
-        D3DCOLOR pushColor = SettingsManager::GetInstance().Palette.Push;
+        auto& settings = SettingsManager::GetInstance();
+        if (settings.HidePush) return;
+        int hide = settings.HidePlayer;
+        D3DCOLOR pushColor = ApplyAlpha(settings.Palette.Push);
         D3DCOLOR noCollisionPushColor = pushColor & 0x00FFFFFF;
         ggxxacpr::Camera cam = api->GameData.GetCamera();
         ggxxacpr::GameVersion gameVer = api->GameData.GetGameVersion();
@@ -321,6 +330,7 @@ namespace ACPRHitboxes {
     ) {
         constexpr int bufferSize = 6 * 64;
         static Vertex buffer[bufferSize];
+        static Vertex combinedGeoBuffer[bufferSize];
 
         if (entity == nullptr ||
             (colliderType == ggxxacpr::ColliderId::HIT_BOX && ShouldHideHitBoxes(entity)) ||
@@ -333,15 +343,14 @@ namespace ACPRHitboxes {
 
         auto color = settings.Palette.Default;
         if (colliderType == ggxxacpr::ColliderId::HIT_BOX) {
-            color = settings.Palette.Hitbox;
+            color = ApplyAlpha(settings.Palette.Hitbox);
         } else if (colliderType == ggxxacpr::ColliderId::HURT_BOX) {
-            color = settings.Palette.Hurtbox;
+            color = ApplyAlpha(settings.Palette.Hurtbox);
         }
 
         short colliderTypeRaw = static_cast<short>(colliderType);
         int bufferIndex = 0;
 
-        // TODO: Test if always rendering the extra colliders is appropriate
         GGXXACPR_Collider* hitBoxSets[] = {
             entity->colliderSetPtr,
             entity->extraColliderSetPtr
@@ -365,7 +374,29 @@ namespace ACPRHitboxes {
         }
 
         XMMATRIX transform =  RawEntityColliderTransform(entity) * ProjectionMatrix(api, cam);
-        DrawTriListPrimitive(device, buffer, bufferIndex*6, transform);
+        if (bufferIndex > 1 && settings.CombineBoxes) {
+            D3DVIEWPORT9 vp;
+            device->GetViewport(&vp);
+            float viewportScale = 480.0f / vp.Height;
+            float borderOffset = SettingsManager::GetInstance().HitboxBorderThickness * viewportScale / cam.zoom();
+            int size = 0;
+            try {
+                size = CombineGeometry(
+                    buffer, bufferIndex*6,
+                    combinedGeoBuffer, bufferSize,
+                    borderOffset
+                );
+            } catch (std::exception e) {
+                std::cout << "[Hitboxes] ERR CombinGeometry: " << e.what() << std::endl;
+                std::cout << "[Hitboxes] P" << entity->playerIndex + 1 <<
+                    " ActId " << entity->actId <<
+                    " ActTime " << entity->actTimer <<
+                    " ColliderType: " << static_cast<int>(colliderType) << std::endl;
+            }
+            DrawTriListPrimitive(device, combinedGeoBuffer, size, transform);
+        } else {
+            DrawTriListPrimitive(device, buffer, bufferIndex*6, transform);
+        }
     }
     void RenderCollidersByType(
         BaseMod::Api* api,
@@ -416,7 +447,7 @@ namespace ACPRHitboxes {
         auto& settings = SettingsManager::GetInstance();
         if (settings.HideCleanHit) return;
         int hide = settings.HidePlayer;
-        auto color = settings.Palette.CLHitbox;
+        D3DCOLOR color = ApplyAlpha(settings.Palette.CLHitbox);
         auto cam = api->GameData.GetCamera();
         
         for (int i = 0; i < 2; i++) {
@@ -457,7 +488,7 @@ namespace ACPRHitboxes {
         auto& settings = SettingsManager::GetInstance();
         if (settings.HideGrab) return;
         int hide = settings.HidePlayer;
-        D3DCOLOR color = settings.Palette.Grab;
+        D3DCOLOR color = ApplyAlpha(settings.Palette.Grab);
 
         for (int i = 0; i < 2; i++) {
             if ((hide & (i+1)) != 0) continue;
@@ -466,7 +497,7 @@ namespace ACPRHitboxes {
 
             int cmdGrabId = CommandThrowIsActive(p);
             if (cmdGrabId != 0) {
-                short range = commandGrabRanges[static_cast<short>(p.id())];
+                short range = commandGrabRanges[cmdGrabId];
                 auto pushDim = GetPlayerPushBoxDimensions(api, p);
                 LoadVertBufferWithQuad(buffer,
                     -(pushDim.x + range),
@@ -551,6 +582,18 @@ namespace ACPRHitboxes {
         };
 
         SetRenderContext(device);
+        if (SettingsManager::GetInstance().WidescreenClipping) {
+            int h = bmApi->GameData.GetViewHeight();
+            int w = h * 4 / 3;
+            int offset = (bmApi->GameData.GetViewWidth() - w) / 2;
+            RECT r = {
+                offset,
+                0,
+                offset + w,
+                h,
+            };
+            device->SetScissorRect(&r);
+        }
 
         for (DrawOperation op : SettingsManager::GetInstance().DrawOrder) {
             if (drawOpMap.contains(op)) {

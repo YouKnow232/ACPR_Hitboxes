@@ -30,13 +30,13 @@ static const intptr_t NativeCLCheckFnAddr = base() + CLEAN_HIT_FN;
 // There is a parameter passed via EDX (GGXXACPR_Entity* attacker),
 //  but it should be forwarded to the native call as long as the EDX
 //  register doesn't get clobbered before then.
-int32_t __stdcall CLCheckWrapper(GGXXACPR_Entity* defender) {
+int32_t __cdecl CLCheckWrapper(GGXXACPR_Entity* defender) {
     int32_t result;
     // Don't clobber EDX before asm block
     asm(
         "push %[aDefender]\n\t"
         "call *%[fn]\n\t"
-        "sub $4, %%esp\n\t"
+        "addl $4, %%esp\n\t"
         "movl %%eax, %[aResult]"
         : [aResult] "=r" (result)
         : [fn] "g" (NativeCLCheckFnAddr),

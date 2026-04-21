@@ -8,22 +8,18 @@
 #include "graphics/render.h"
 #include "settings/settings.h"
 #include "settings/modMenu.h"
-
 #include <iostream>
 
-// TODO:
-//  ABA throw box bug with air keygrab
-//  Slayer BSU throw range incorrect?
-//  Serialize settings
 
 using namespace ACPRHitboxes;
 
 static BaseMod::HookId renderHookId;
-static BaseMod::HookId clRecordHookId;
+static BaseMod::HookId saveHookId;
+static BaseMod::HookId updateHookId;
 
-static const char* settingsFile = "./mods/hitboxes/settings.ini";
+static const char* settingsFile = "./mods/hitboxes/saved_settings.bin";
 
-void __stdcall RenderHook(
+void BASEMOD_CALL RenderHook(
     BaseMod::Api* bmApi,
     const BaseMod_HookContext* ctx,
     const BaseMod_DrawInfo* info
@@ -31,15 +27,15 @@ void __stdcall RenderHook(
     RenderFrame(bmApi, reinterpret_cast<IDirect3DDevice9*>(info->device));
 }
 
-void BASEMOD_CALL Save(
+void BASEMOD_CALL SaveHook(
     BaseMod::Api* bmApi,
     const BaseMod::HookContext* ctx,
     const BaseMod::SaveGameInfo* info
 ) {
-    SaveSettingsToFile(settingsFile);
+    SettingsManager::GetInstance().Serialize(settingsFile);
 }
 
-void __stdcall AfterUpdate(
+void BASEMOD_CALL UpdateHook(
     BaseMod::Api* bmApi,
     const BaseMod_HookContext* ctx,
     const BaseMod_GameUpdateInfo* info
@@ -71,7 +67,7 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
     BaseMod::Api bmApi = SetBMApi(baseModApi);
     BaseMod::Api* bmApiPtr = new BaseMod::Api(baseModApi);
 
-    LoadSettingsFromFile(settingsFile);
+    SettingsManager::GetInstance().Deserialize(settingsFile);
 
     int result = InitGraphics(reinterpret_cast<IDirect3DDevice9*>(bmApi.GameData.GetD3D9Device()));
     if (result != D3D_OK) {
@@ -85,7 +81,8 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
 
     // Register hooks
     renderHookId = bmApi.Hooks.BeforePresent<BaseMod::Api>(RenderHook, bmApiPtr);
-    clRecordHookId = bmApi.Hooks.AfterGameUpdate<BaseMod::Api>(AfterUpdate, bmApiPtr);
+    saveHookId = bmApi.Hooks.AfterSaveGame<BaseMod::Api>(SaveHook, bmApiPtr);
+    updateHookId = bmApi.Hooks.AfterGameUpdate<BaseMod::Api>(UpdateHook, bmApiPtr);
     SetCLHook();
 
     std::cout << "[Hitboxes] Initialized" << std::endl;

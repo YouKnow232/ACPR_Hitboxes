@@ -3,9 +3,6 @@
 #include <windows.h>
 #include "baseMod/baseMod.hpp"
 
-// // TEMP DEBUG
-// #include "iostream"
-// inline void Print(const char* s) { std::cout << s << std::endl; }
 
 struct Quad {
     int left, right, top, bottom;
@@ -73,8 +70,13 @@ int CommandThrowIsActive(ggxxacpr::Player& p) {
         {ggxxacpr::EntityId::ROBO_KY,   0x0DF, 21}, // S-KY-line
         {ggxxacpr::EntityId::ABA,       0x112, 25}, // Close Key Grab
         {ggxxacpr::EntityId::ABA,       0x113, 25}, // Moroha/ABA EX Close Key Grab
-        {ggxxacpr::EntityId::ABA,       0x11A, 26}, // Unknown (Unused Air keygrab?) actId 282, cmdGrabId 26
-        {ggxxacpr::EntityId::ABA,       0x11B, 26}, // Unknown (Unused Air keygrab?) actId 283, cmdGrabId 26
+
+        // These two cmdGrabIds are associated with ABA's air keygrab (one act for normal and one for moroha mode).
+        //      The `mark` var is set to 1 while ABA is falling after a successful air keygrab, but there's no
+        //      known use for this cmdGrabId here.
+
+        // {ggxxacpr::EntityId::ABA,       0x11A, 26}, // Unknown (Unused Air keygrab?) actId 282, cmdGrabId 26
+        // {ggxxacpr::EntityId::ABA,       0x11B, 26}, // Unknown (Unused Air keygrab?) actId 283, cmdGrabId 26
     };
 
     if (p.getRaw()->mark == 1) {
