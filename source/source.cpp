@@ -55,7 +55,7 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
     SemanticVersion retVer;
     int errCode = glApi->RetrieveModApi<BaseMod_Api>(
         BASEMOD_NAME,
-        ">=0.1.0",
+        BASEMOD_API_VERSION,
         &baseModApi,
         &retVer
     );
