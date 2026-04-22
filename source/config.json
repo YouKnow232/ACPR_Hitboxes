@@ -5,7 +5,8 @@
     "modLoaderVersion": "0.1.0",
     "dependencies": [
         {
-            "name": "baseMod"
+            "name": "baseMod",
+            "version": "1.0.0"
         }
     ]
 }

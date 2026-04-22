@@ -293,7 +293,7 @@ namespace ggxxacpr {
             PROJECTILE_INVULN = ACTION_STATE_PROJECTILE_INVULN, /* A legacy value, that's mainly used in throw animations as a sort of invuln flag. */
             WAKEUP = ACTION_STATE_WAKEUP,
             DISABLE_WAKEUP = ACTION_STATE_DISABLE_WAKEUP,  /* Set at round end for the KO'd player. */
-            STRIKE_INVLUN = ACTION_STATE_STRIKE_INVLUN,
+            STRIKE_INVULN = ACTION_STATE_STRIKE_INVULN,
             IS_IDLE = ACTION_STATE_IS_IDLE,
             SUPER_FLASH = ACTION_STATE_SUPER_FLASH, /* Set only when the entity is frozen in super flash. */
             NO_COLLISION = ACTION_STATE_NO_COLLISION,
@@ -353,7 +353,7 @@ namespace ggxxacpr {
         AIR_DASH = COMMAND_STATE_AIR_DASH,
         UKEMI = COMMAND_STATE_UKEMI,
         PREJUMP = COMMAND_STATE_PREJUMP,
-        DISABLE_TRHOW = COMMAND_STATE_DISABLE_TRHOW,
+        DISABLE_THROW = COMMAND_STATE_DISABLE_THROW,
         FAUST_CRAWL_FORWARD = COMMAND_STATE_FAUST_CRAWL_FORWARD,
         FAUST_CRAWL_BACKWARD = COMMAND_STATE_FAUST_CRAWL_BACKWARD,
     };
@@ -612,9 +612,9 @@ namespace ggxxacpr {
      *      and interpretations of its data.
      * 
      *  This wrapper only exposes data that has a known use and only provides
-     *      setters for data that has a known effect when changed. For full,
-     *      direct data access, call `Player::getRaw()` and use the
-     *      `GGXXACPR_Entity` interface.
+     *  setters for data that has a known effect when changed. For full,
+     *  direct data access, call `Player::getRaw()` and use the
+     *  `GGXXACPR_Entity` interface.
      */
     class Player {
     public:
@@ -781,12 +781,12 @@ namespace ggxxacpr {
 
     /**
      *  \brief Wraps a `GGXXACPR_Entity` struct pointer and provides conversions
-     *      and generic entity-oriented interprets of its data.
+     *      and generic entity-oriented interpretations of its data.
      * 
      *  This wrapper only exposes data that has a known use and only provides
-     *      setters for data that has a known effect when changed. For full,
-     *      direct data access, call `Entity::getRaw()` and use the
-     *      `GGXXACPR_Entity` interface.
+     *  setters for data that has a known effect when changed. For full,
+     *  direct data access, call `Entity::getRaw()` and use the
+     *  `GGXXACPR_Entity` interface.
      */
     class Entity {
     public:

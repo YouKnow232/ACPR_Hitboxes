@@ -6,16 +6,15 @@
 *  include this header instead to interface with the game directly.
 *
 * GearLoader Developers:
-*  Generally, feature additions to the API should be added to `baseMod.h`.
-*  This file should only be changed to address compiler compatibility, breaking
-*  game updates, indentify unknown fields, and refine field names.
+*  Existing definitions should only be changed to address compiler compatibility,
+*  fix breaking game updates, identify unknown fields, and refine field names.
 *--------------------------------------------------------------------------------------------------*/
 
 #ifndef GGXXACPR_H
 #define GGXXACPR_H
 
-#define GGXXACPR_ABI_VERSION "0.1.0"
-#define GGXXACPR_ABI_VERSION_NUM 0x000100
+#define GGXXACPR_ABI_VERSION "1.0.0"
+#define GGXXACPR_ABI_VERSION_NUM 0x010000
 
 #include <assert.h>
 
@@ -294,7 +293,7 @@ enum GGXXACPR_ActionState {
     ACTION_STATE_PROJECTILE_INVULN = 0x4000, /* A legacy value, that's mainly used in throw animations as a sort of invuln flag. */
     ACTION_STATE_WAKEUP = 0x8000,
     ACTION_STATE_DISABLE_WAKEUP = 0x10000,  /* Set at round end for the KO'd player. */
-    ACTION_STATE_STRIKE_INVLUN = 0x20000,
+    ACTION_STATE_STRIKE_INVULN = 0x20000,
     ACTION_STATE_IS_IDLE = 0x40000,
     ACTION_STATE_SUPER_FLASH = 0x80000, /* Set only when the entity is frozen in super flash. */
     ACTION_STATE_NO_COLLISION = 0x100000,
@@ -358,7 +357,7 @@ enum GGXXACPR_CommandState {
     COMMAND_STATE_AIR_DASH = 0x400,
     COMMAND_STATE_UKEMI = 0x800,
     COMMAND_STATE_PREJUMP = 0x1000,
-    COMMAND_STATE_DISABLE_TRHOW = 0x2000,
+    COMMAND_STATE_DISABLE_THROW = 0x2000,
     COMMAND_STATE_FAUST_CRAWL_FORWARD = 0x4000,
     COMMAND_STATE_FAUST_CRAWL_BACKWARD = 0x8000,
 };
@@ -739,7 +738,7 @@ typedef struct GGXXACPR_PlayerData {
     uint8_t tShand;
     uint8_t pushTime;
     uint8_t attackDown;
-    uint8_t defenceDown;
+    uint8_t defenseDown;
     uint8_t jumpSeal;
     uint8_t artsSeal;
     uint8_t poison;

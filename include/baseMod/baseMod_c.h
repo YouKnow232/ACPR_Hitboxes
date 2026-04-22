@@ -2,9 +2,8 @@
 #define BASEMOD_H
 
 #define BASEMOD_NAME "baseMod"
-#define BASEMOD_API_VERSION "0.1.0"
-#define BASEMOD_API_VERSION_NUM 0x000100
-#define BASEMOD_MAJOR_VERSION_MASK 0xFF0000
+#define BASEMOD_API_VERSION "1.0.0"
+#define BASEMOD_API_VERSION_NUM 0x010000
 #define BASEMOD_CALL __stdcall
 
 #ifdef __cplusplus
@@ -47,7 +46,7 @@ struct BaseMod_NativeFunctionsApi {
      *  \brief Draws cockpit font text to the screen.
      * 
      *  This function must be called before the game begins its drawing process.
-     *      It is recommend to call this function in the `AfterGameUpdate` hook.
+     *  It is recommend to call this function in the `AfterGameUpdate` hook.
      * 
      *  \param text A pointer to the text string to be displayed. The string format is a subset of ASCII.
      *      The character set is limited to upper case letters, numbers, and the following special symbols: "-+.!?/():&"
@@ -66,8 +65,8 @@ struct BaseMod_NativeFunctionsApi {
      *  \brief Draws text to the screen such as the text seen in pause menus.
      * 
      *  This function must be called before the game begins its drawing process.
-     *      It is recommend to call this function in the `AfterGameUpdate` hook.
-     *      Max string size is 512 characters. This function can handle '\n' characters.
+     *  It is recommend to call this function in the `AfterGameUpdate` hook.
+     *  Max string size is 512 characters. This function can handle '\n' characters.
      * 
      *  \param text A pointer to the text string to be displayed.
      *  \param x Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
@@ -115,7 +114,7 @@ struct BaseMod_NativeFunctionsApi {
      *  \brief Plays a sound effect.
      * 
      *  An internal array is indexed with the `id` parameter without validity checks.
-     *      Invalid values can cause invalid memory access.
+     *  Invalid values can cause invalid memory access.
      * 
      *  \param id The given id maps to the "COMMON SE" sound effect in the Sound menu.
      *      See `github.com/youknow232/gearloader/docs/SoundEffectIdMap.txt` for the id mappings.
@@ -148,8 +147,8 @@ struct BaseMod_NativeFunctionsApi {
     /**
      *  \brief Draws a triangle strip primitive.
      * 
-     *  The coordinates of the vertices are given in interal resolution screen space coordinates.
-     *      The top left pixel is (0, 0) and the bottom right pixel is (640, 480).
+     *  The coordinates of the vertices are given in internal resolution screen space coordinates.
+     *  The top left pixel is (0, 0) and the bottom right pixel is (640, 480).
      * 
      *  \param vertices The vertices making up the triangle strip.
      *  \param numVertices The number of vertices.
@@ -160,10 +159,10 @@ struct BaseMod_NativeFunctionsApi {
      *  \brief Draws a rectangle to the screen.
      * 
      *  A simple helper function that calls constructs four vertices from the given
-     *      parameters and passes them to `DrawTriStrip`. The edges of the quad are
-     *      given in internal resolution screen space coordinates. The top left pixel
-     *      is (0, 0) and the bottom right pixel is (640, 480).
-     *      
+     *  parameters and passes them to `DrawTriStrip`. The edges of the quad are
+     *  given in internal resolution screen space coordinates. The top left pixel
+     *  is (0, 0) and the bottom right pixel is (640, 480).
+     * 
      *  This function should only be invoked in the context of the game's main scene, such
      *      as during a hook registered with `BaseMod_Api::BeforeEndScene`.
      * 
@@ -192,8 +191,8 @@ typedef enum BM_ThrowRangeArrayType {
     BM_TR_GROUND_PR,
     BM_TR_AIR_HORIZONTAL_AC,
     BM_TR_AIR_HORIZONTAL_PR,
-    BM_TR_AIR_UPPER,    // This array is not split between Accent Core and Plus R
-    BM_TR_AIR_LOWER,    // This array is not split between Accent Core and Plus R
+    BM_TR_AIR_UPPER,    //! This array is not split between Accent Core and Plus R
+    BM_TR_AIR_LOWER,    //! This array is not split between Accent Core and Plus R
 } BM_ThrowRangeArrayType;
 
 struct BaseMod_CharDataApi {
@@ -214,8 +213,8 @@ struct BaseMod_CharDataApi {
      *  \brief Returns a pointer to the game's airborne pushbox offset array.
      * 
      *  These values are subtracted from the player's y position when calculating airborne pushbox collisions.
-     *      There are different arrays for Accent Core vs Plus R.
-     *      Each array is indexed with a `GGXXACPR_EntityId` value as returned by `GGXXACPR_Entity::id`.
+     *  There are different arrays for Accent Core vs Plus R.
+     *  Each array is indexed with a `GGXXACPR_EntityId` value as returned by `GGXXACPR_Entity::id`.
      * 
      *  \param gameVer see enum `GGXXACPR_GameVersion`
      */
@@ -225,7 +224,7 @@ struct BaseMod_CharDataApi {
      * 
      *  These arrays are all indexed with an `GGXXACPR_EntityId` value as returned by `GGXXACPR_Entity::id`.
      * 
-     * \param type see enum `BM_ThrowRangeArrayType`
+     *  \param type see enum `BM_ThrowRangeArrayType`
      */
     int16_t* BASEMOD_CALL (*GetThrowRangeArray)(int32_t type);
     /**
@@ -241,18 +240,34 @@ struct BaseMod_GameDataApi {
     uint32_t size;
     /// \brief The API version
     uint32_t version;
+    
+    /**
+     *  \brief API for accessing static character data.
+     */
+    const struct BaseMod_CharDataApi* CharacterData;
 
     /**
-     *  \brief `0` for player 1, `1` for player 2.
+     *  \brief Gets player data.
+     * 
+     *  Player entities are not loaded until the first time the battle screen loads.
+     *  Null checks must be performed on this function's output.
+     *  Player entities are stored sequentially, so you can treat the player 1 pointer as an
+     *  array containing both player structs (ex. `GGXXACPR_Entity p2 = GetPlayer(0)[1];`).
+     * 
+     *  \param playerIndex 0 for P1, 1 for P2
+     *  \return A pointer to the specified player entity struct or the null pointer if the player structs are not yet initialized
      */
     GGXXACPR_Entity* BASEMOD_CALL (*GetPlayer)(int playerIndex);
-    // TODO: enum return might cause stack corruption when used across ABI boundary
     /**
-     *  \brief Gets the current state of a player's controller input
+     *  \brief Gets a pointer to the player input struct array. See `GGXXACPR_PlayerInput`.
+     * 
+     *  The array returned is size 2, first entry is player 1's input and second is player 2's.
+     * 
+     *  \return A pointer to the player input struct array.
      */
-    enum GGXXACPR_RawControllerInput BASEMOD_CALL (*GetPlayerInput)(int playerIndex);
+    GGXXACPR_PlayerInput* BASEMOD_CALL (*GetPlayerInputStructArr)();
     /**
-     *  \brief Gets the camera struct. See `GGXXACPR_Camera`.
+     *  \brief Gets camera data.
      */
     GGXXACPR_Camera* BASEMOD_CALL (*GetCamera)();
     /**
@@ -260,7 +275,7 @@ struct BaseMod_GameDataApi {
      */
     int32_t BASEMOD_CALL (*IsInGame)();
     /**
-     *  \brief Returns a pointer to the current job mode, see enum `GGXXACPR_JobMode`. This variable
+     *  \brief Returns the current job mode, see enum `GGXXACPR_JobMode`. This variable
      *      determines what scene the game is set to such as "TitleScreen", "Battle", "MissionMenu".
      */
     int32_t BASEMOD_CALL (*GetJobMode)();
@@ -272,18 +287,20 @@ struct BaseMod_GameDataApi {
      *  \brief Enum `GGXXACPR_MainMenuItem`. Returns the game mode selected from the main menu.
      * 
      *  This value defaults to MAIN_MENU_ITEM_ARCADE and is
-     *      set when selecting an option on the main menu.
+     *  set when selecting an option on the main menu.
      */
     uint32_t BASEMOD_CALL (*GetMainMenuSelection)();
     /**
      *  \brief Returns the D3D9 device pointer.
      * 
      *  Include `d3d9.h` and cast to IDirect3DDevice9 to use. This is
-     *      a borrowed pointer. Do not call `Release()`.
+     *  a borrowed pointer. Do not call `Release()`.
      */
     void* BASEMOD_CALL (*GetD3D9Device)();
     /**
-     *  \brief See enum `GGXXACPR_GameVersion`. Returns the currently set game version, AC or AC+R as selected from the "help & options" > "Game Settings" menu.
+     *  \brief Gets the current game version. See enum `GGXXACPR_GameVersion`.
+     * 
+     *  AC or AC+R as selected from the "Main Menu > help & options > Game Settings > "Version" setting.
      */
     uint32_t BASEMOD_CALL (*GetGameVersion)();
     /**
@@ -298,17 +315,13 @@ struct BaseMod_GameDataApi {
      *  \brief Returns a pointer to the root entity.
      * 
      *  This entity is the root node of the entity linked list. Iterate through it
-     *      using `GGXXACPR_Entity::nextPtr` and `GGXXACPR_Entity::prevPtr`.
+     *  using `GGXXACPR_Entity::nextPtr` and `GGXXACPR_Entity::prevPtr`.
      */
     GGXXACPR_Entity* BASEMOD_CALL (*GetRootEntity)();
-    uint32_t BASEMOD_CALL (*GetGlobalThrowFlags)();
-
-    // char data vtable
     /**
-     *  \brief API for accessing static character data.
+     *  \brief Gets raw throw detection info
      */
-    const struct BaseMod_CharDataApi* CharacterData;
-
+    uint32_t BASEMOD_CALL (*GetGlobalThrowFlags)();
     /**
      *  \brief Gets a pointer to the pause state global variable.
      * 
@@ -322,10 +335,6 @@ struct BaseMod_GameDataApi {
      */
     int32_t* BASEMOD_CALL (*GetPauseDisplayState)();
     /**
-     *  \brief Gets a pointer to the player input struct array. See `GGXXACPR_PlayerInput`.
-     */
-    GGXXACPR_PlayerInput* BASEMOD_CALL (*GetPlayerInputStructArr)();
-    /**
      *  \brief Gets a pointer to the game's locale state. see `GGXXACPR_LocaleState`.
      */
     GGXXACPR_LocaleState* BASEMOD_CALL (*GetLocaleState)();
@@ -335,8 +344,8 @@ typedef uint32_t BaseMod_HookId;
 typedef struct BaseMod_HookContext BaseMod_HookContext;
 
 typedef struct BaseMod_PeekMessageArgs {
-    void* lpMsg;    // MSG from `winuser.h`
-    void* hWnd;     // HWND from `WinDef.h`
+    void* lpMsg;    //! MSG from `winuser.h`
+    void* hWnd;     //! HWND from `WinDef.h`
     uint32_t wMsgFilterMin;
     uint32_t wMsgFilterMax;
     uint32_t wRemoveMsg;
@@ -347,24 +356,24 @@ typedef struct BaseMod_PeekMessageInfo {
 } BaseMod_PeekMessageInfo;
 typedef void BASEMOD_CALL (*BaseMod_PeekMessageHook)(void* userData, const BaseMod_HookContext* ctx, const BaseMod_PeekMessageInfo* info);
 
-// Reserved
+//! Reserved
 typedef struct BaseMod_GameUpdateInfo BaseMod_GameUpdateInfo;
-// Parameters reserved
+//! Parameters reserved
 typedef void BASEMOD_CALL (*BaseMod_GameUpdateHook)(void* userData, const BaseMod_HookContext* ctx, const BaseMod_GameUpdateInfo* info);
 
 typedef struct BaseMod_DrawInfo {
-    // include `d3d9.h` and cast to IDirect3DDevice9.
+    //! include `d3d9.h` and cast to IDirect3DDevice9*.
     void* device;
 } BaseMod_DrawInfo;
 typedef void BASEMOD_CALL (*BaseMod_DrawHook)(void* userData, const BaseMod_HookContext* ctx, const BaseMod_DrawInfo* info);
-// Reserved
+//! Reserved
 typedef struct BaseMod_SaveGameInfo {
-    // Pointer to an undocumented save file structure
+    //! Pointer to an undocumented save file structure
     void* saveFileStruct;
 } BaseMod_SaveGameInfo;
 typedef void BASEMOD_CALL (*BaseMod_SaveGameHook)(void* userData, const BaseMod_HookContext* ctx, const BaseMod_SaveGameInfo* info);
 
-// Adds callbacks to managed function hooks.
+//! Adds callbacks to managed function hooks.
 struct BaseMod_HookApi {
     /// \brief The size of the struct in bytes
     uint32_t size;
@@ -373,17 +382,22 @@ struct BaseMod_HookApi {
 
     /**
      *  \brief Removes a hook from the registry.
+     * 
      *  \param id The `BaseMod_HookId` of the hook to be removed.
      *  \return 0 if no error, else an error code.
      */
     uint32_t BASEMOD_CALL (*RemoveHook)(BaseMod_HookId id);
     /**
-     *  \brief Registers a hook to the PeekMessage hook.
+     *  \brief Registers a callback to the PeekMessage hook.
      * 
-     *  Use PeekMessage hooks to read windows message such as low level keyboard input.
+     *  Use this to read windows message such as low level keyboard inputs.
+     *  This hook is a call replacement and not a direct `PeekMessage` hook
+     *  so callbacks are only called for messages retrieved by the game window.
+     *  The parameters used to call `PeekMessage` are provided in the
+     *  `BaseMod_PeekMessageInfo` parameter of `BaseMod_PeekMessageHook`.
      * 
-     *  \param hookFn The callback function, see type `BaseMod_PeekMessageHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param hookFn The callback function, see `BaseMod_PeekMessageHook`.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -394,7 +408,7 @@ struct BaseMod_HookApi {
      *  Use this to apply changes to the game state right before it runs an update.
      * 
      *  \param hookFn The callback function, see type `BaseMod_GameUpdateHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -406,7 +420,7 @@ struct BaseMod_HookApi {
      *      the game state right after the game updates it.
      * 
      *  \param hookFn The callback function, see type `BaseMod_GameUpdateHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -417,7 +431,7 @@ struct BaseMod_HookApi {
      *  Use this to add additional graphics logic to the game's main scene.
      * 
      *  \param hookFn The callback function, see type `BaseMod_DrawHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -429,7 +443,7 @@ struct BaseMod_HookApi {
      *  Use this to add a new scene to the current frame.
      * 
      *  \param hookFn The callback function, see type `BaseMod_DrawHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -442,7 +456,7 @@ struct BaseMod_HookApi {
      *  Use this hook to trigger saving mod data.
      * 
      *  \param hookFn The callback function, see type `BaseMod_SaveGameHook`.
-     *  \param userData A generic pointer to state data.
+     *  \param userData A generic pointer to state data that will be forwarded to `hookFn`.
      * 
      *  \return A hook id value that can be passed to `RemoveHook`.
      */
@@ -453,7 +467,7 @@ struct BaseMod_HookApi {
 typedef void (BASEMOD_CALL *BM_MenuAction)();
 typedef void (BASEMOD_CALL *BM_ValueChangeCallback)(int32_t value);
 /**
- *  @brief Represents a mod menu entry.
+ *  \brief Represents a mod menu entry.
  * 
  *  Entries can display in 3 different modes depending on which values are defined in this
  *      struct.
@@ -461,40 +475,56 @@ typedef void (BASEMOD_CALL *BM_ValueChangeCallback)(int32_t value);
  *  - Command:
  *    - Definition: Value is null, ValueLabels is null, and Command is defined
  *    - Behavior: Only display label, execute command when selected.
- *  - Number Line:
+ *  - Gauge:
  *    - Definition: Value is defined and ValueLabels is null
- *    - Behavior: Set a value on a number line (e.g. Training Menu->Life Bar)
- *  - Enum Value:
+ *    - Behavior: Set a value on a gauge (e.g. Training Menu->Life Bar)
+ *  - Enum:
  *    - Definition: Value and ValueLabels are defined
  *    - Behavior: Select a value (e.g. Training Menu->Display)
  * 
  *  Number Line and Enum Value type entries may also have a command function.
  */
 typedef struct BaseMod_ModMenuEntry {
-    // Primary label. Unlike `ValueLabels` strings, lower case letters are allowed.
+    /**
+     *  \brief Primary label
+     * 
+     *  Drawn via the `RenderMenuText` native function. see
+     *  `BaseMod_NativeFunctionsApi::RenderMenuText` for format and character restrictions.
+     */
     const char* Label;
-    // Real value behind the setting. This value will be read and written to.
+    /**
+     *  \brief Real value behind the setting.
+     * 
+     *  This value will be read and written to.
+     */
     int32_t* Value;
-    // Inclusive
+    /**
+     *  \brief Minimum value. Should almost always be 0. Inclusive.
+     * 
+     *  Gauge setting UI assumes minimum is 0. Other values may display strangely.
+     */
     int32_t MinValue;
-    // Inclusive. Maximum value for Number Line and maximum index for value
-    //  labels (i.e. `ValueLabel` size - 1). Getting this value wrong can cause crashes!
+    /**
+     *  \brief Maximum value for Number Line and maximum index for value labels (i.e. `ValueLabel` size - 1).
+     * 
+     *  Inclusive. Getting this value wrong can cause crashes!
+     */
     int32_t MaxValue;
     /**
-     * \brief A list of labels to assign to each value.
+     *  \brief A list of labels to assign to each value.
      * 
      *  Value labels are drawn via the `RenderCockpitFontText` internal function. String format and character
      *      restrictions apply. see `BaseMod_NativeFunctionsApi::RenderCockpitFontText` for details.
      */
     const char** ValueLabels;
-    // Optional command callback when entry is selected and pressed
+    /// \brief Optional command callback when entry is selected and pressed
     BM_MenuAction Command;
-    // Optional value changed callback. Can be used to update other values based on the entry `Value`.
+    /// \brief Optional value changed callback. Can be used to update other values based on the entry `Value`.
     BM_ValueChangeCallback ValueChanged;
 } BaseMod_ModMenuEntry;
 
 /**
- *  \brief Rectangle dimensions bounding the drawable menu area given in interal resolution
+ *  \brief Rectangle dimensions bounding the drawable menu area given in internal resolution
  *      screen space coordinates. Top left pixel is (0, 0) and bottom right is (640, 480).
  *      Use these dimensions to future proof `BM_CustomMenuHandler` implementations in case
  *      the mod menu display changes.
@@ -534,7 +564,6 @@ typedef struct BaseMod_ModMenu_HelperFunctionsApi {
      *  \brief Handles input repeating for held direction inputs.
      * 
      *  Uses this for left/right inputs in the menu or custom selection handling.
-     *  The `SelectionHandler` uses this for up/down inputs.
      * 
      *  \param input see enum `GGXXACPR_RawControllerInput`
      */
@@ -556,7 +585,7 @@ typedef struct BaseMod_ModMenu_HelperFunctionsApi {
     /**
      *  \brief Draws the gauge setting UI.
      * 
-     *  The native function invoked here has a hard-coded xPosition.
+     *  The native function invoked here has a hard-coded x position.
      * 
      *  \param currentValue Value to display on the gauge.
      *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
@@ -569,6 +598,8 @@ typedef struct BaseMod_ModMenu_HelperFunctionsApi {
     /**
      *  \brief Draws one or both of the menu scroll arrows.
      * 
+     *  This is the same sprite as the scroll arrows in the training menu but with custom positions.
+     * 
      *  \param flags see enum `BM_DrawScrollArrowFlags`
      */
     void BASEMOD_CALL (*DrawScrollArrow)(int32_t flags);
@@ -576,7 +607,7 @@ typedef struct BaseMod_ModMenu_HelperFunctionsApi {
 } BaseMod_ModMenu_HelperFunctionsApi;
 typedef void (BASEMOD_CALL *BM_CustomMenuHandler)(GGXXACPR_PlayerInput* inputArr);
 
-// Add options to mod menu
+//! Add options to mod menu
 struct BaseMod_ModMenuApi {
     /// \brief The size of the struct in bytes
     uint32_t size;
@@ -589,21 +620,26 @@ struct BaseMod_ModMenuApi {
      *      The format is a semantic version 0x00AABBCC where 0xAA is major, 0xBB is minor, and 0xCC is patch number.
      */
     uint32_t version;
+    
     /**
-     *  \brief Registers a menu tab definition with the mod menu.
-     * 
-     *  \param title Tab name. Character limitations are similar to `BaseMod_NativeFunctionsApi::RenderCockpitFontText`
-     *  \param entries An array of BaseMod_ModMenuEntry structures comprising the menu defintion.
-     *      See `BaseMod_ModMenuEntry`. Callers must maintain the lifetime of values in the declaration.
-     *  \return 0 if no error, else an error code.
+     *  \brief A collection of helper functions for implementing your own custom menu handler.
      */
-    uint32_t BASEMOD_CALL (*RegisterMenuTab)(const char* title, const BaseMod_ModMenuEntry* entries, uint32_t numEntries);
+    const BaseMod_ModMenu_HelperFunctionsApi* HelperFunctions;
     /**
-     *  \brief Get's a pointer to a struct defining the bounds of the drawable menu area.
+     *  \brief Gets a pointer to a struct defining the bounds of the drawable menu area.
      * 
      *  Use these dimensions to future proof `BM_CustomMenuHandler` implementations.
      */
     const BaseMod_MenuDimensions* BASEMOD_CALL (*GetDrawableAreaDimensions)();
+    /**
+     *  \brief Registers a menu tab definition with the mod menu.
+     * 
+     *  \param title Tab name. Character limitations are similar to `BaseMod_NativeFunctionsApi::RenderCockpitFontText`
+     *  \param entries An array of BaseMod_ModMenuEntry structures comprising the menu definition.
+     *      See `BaseMod_ModMenuEntry`. Callers must maintain the lifetime of values in the declaration.
+     *  \return 0 if no error, else an error code.
+     */
+    uint32_t BASEMOD_CALL (*RegisterMenuTab)(const char* title, const BaseMod_ModMenuEntry* entries, uint32_t numEntries);
     /**
      *  \brief Registers a custom menu handler function.
      * 
@@ -616,14 +652,13 @@ struct BaseMod_ModMenuApi {
      *      implementing your own handler.
      */
     uint32_t BASEMOD_CALL (*RegisterCustomMenuTab)(const char* title, BM_CustomMenuHandler handler);
-    /**
-     *  \brief A collection of helper functions for implementing your own custom menu handler.
-     */
-    const BaseMod_ModMenu_HelperFunctionsApi* HelperFunctions;
 };
 
-// Root struct for the base mod API. A pointer to an instance of
-//  this struct will be given by `IGearLoaderApi.RetrieveModAPI()`.
+/**
+ *  \brief Root struct for the base mod API.
+ * 
+ *  A pointer to an instance of this struct will be given by `GearLoaderApi::RetrieveModAPI()`.
+ */
 typedef struct BaseMod_Api {
     /// \brief The size of the struct in bytes
     uint32_t size;

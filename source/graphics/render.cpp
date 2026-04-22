@@ -24,7 +24,7 @@ namespace ACPRHitboxes {
             bmApi->GameData.GetCamera().size().x != 0;
     }
     inline bool ShouldHideHurtBoxes(GGXXACPR_Entity* e) {
-        constexpr uint32_t mask = ACTION_STATE_STRIKE_INVLUN & ACTION_STATE_PROJECTILE_INVULN & ACTION_STATE_DISABLE_HURTBOXES;
+        constexpr uint32_t mask = ACTION_STATE_STRIKE_INVULN & ACTION_STATE_PROJECTILE_INVULN & ACTION_STATE_DISABLE_HURTBOXES;
         return (e->actionState & mask) != 0 ||
             (e->playerEntityDataPtr != nullptr && e->playerEntityDataPtr->invulnCounter > 0);
     }

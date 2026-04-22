@@ -96,7 +96,7 @@ bool IsUniversalThrowActive(BaseMod::Api* api, ggxxacpr::Player& p) {
     auto opponent = api->GameData.GetPlayer(!p.playerIndex());
     auto pRaw = p.getRaw();
 
-    return (pRaw->commandFlags & COMMAND_STATE_DISABLE_TRHOW) == 0 &&
+    return (pRaw->commandFlags & COMMAND_STATE_DISABLE_THROW) == 0 &&
         universalThrowFlags & (p.playerIndex() + 1) != 0 &&
         (opponent.actionState() & ggxxacpr::ActionState::IS_IN_HITSTUN) != ggxxacpr::ActionState::NONE;
 }

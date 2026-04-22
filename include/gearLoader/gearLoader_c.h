@@ -42,13 +42,15 @@ typedef enum GearLoaderLogLevel {
     GEARLOADER_LOG_LEVEL_VERBOSE
 } GearLoaderLogLevel;
 
-// Forward this incomplete type to API calls to provide calling context to the mod loader.
+/**
+ *  \brief  Forward this incomplete type to API calls to provide calling context to the mod loader.
+ */
 typedef struct GearLoaderContext GearLoaderContext;
 
 typedef struct GearLoaderApi {
-    // The size of this struct
+    //! The size of this struct
     uint32_t size;
-    // The version of this struct's layout
+    //! The version of this struct's layout
     uint32_t version;
 
     /**
@@ -123,7 +125,7 @@ typedef struct GearLoaderApi {
 #endif
 #define GEARLOADER_CALL __cdecl
 
-// All mods should export an "Init" function that follows this signature
+//! Mods may export an "Init" function that follows this signature
 typedef void (GEARLOADER_CALL *ModInitFunc)(GearLoaderContext* ctx, GearLoaderApi* api);
 
 #endif
