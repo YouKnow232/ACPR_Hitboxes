@@ -79,20 +79,22 @@ public:
      *  This function must be called before the game begins its drawing process.
      *  It is recommend to call this function in the `AfterGameUpdate` hook.
      * 
+     *  \image html RenderCockpitFontTextDemo.png "Example input/output. Font type depends on game setting."
+     * 
      *  \param text A pointer to the text string to be displayed. The string format is a subset of ASCII.
      *      The character set is limited to upper case letters, numbers, and the following special symbols: "-+.!?/():&"
      *      The following characters map to additional special characters:
      *          ",~acegiwxyz" maps to "•±on•utabyx".
      *          '>' = END character from the highscore initials screen.
      *          "bdfh" = down/left/right/up arrows
-     *  \param xPos Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
-     *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
-     *  \param zPos The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
+     *  \param x Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
+     *  \param y Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
+     *  \param z The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
      *  \param alpha Transparency value [0-255].
      *  \param size Scaling value, standard size is 1.0f which results in a text glyph of size 12x15px (internal resolution).
      */
-    void RenderCockpitFontText(std::string text, int32_t xPos, int32_t yPos, float zPos, uint8_t alpha, float size) {
-        _ref->RenderCockpitFontText(text.c_str(), xPos, yPos, zPos, alpha, size);
+    void RenderCockpitFontText(std::string text, int32_t x, int32_t y, float z, uint8_t alpha, float size) {
+        _ref->RenderCockpitFontText(text.c_str(), x, y, z, alpha, size);
     }
 
     /**
@@ -103,9 +105,9 @@ public:
      *  Max string size is 512 characters. This function can handle '\n' characters.
      * 
      *  \param text A pointer to the text string to be displayed.
-     *  \param xPos Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
-     *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
-     *  \param zPos The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
+     *  \param x Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
+     *  \param y Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
+     *  \param z The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
      *  \param alpha Transparency value from 0 to 1, 1 being fully opaque.
      *  \param animCounter Optional pointer to an animation counter. If defined, the text will perform a 'typewriter' animation
      *      drawing an additional letter at a time until fully rendered. One letter will be rendered per 128 units on this counter.
@@ -114,30 +116,30 @@ public:
      *  \param ignoreSpriteMask If true, ignores color and alpha params and draws as fully opaque white text.
      *  \param color The color of the text string (0xRRGGBB)
      */
-    void RenderMenuText(const char* text, int32_t xPos, int32_t yPos, float zPos, float alpha,
+    void RenderMenuText(const char* text, int32_t x, int32_t y, float z, float alpha,
         int32_t* animCounter, int32_t animSpeed, bool ignoreSpriteMask, uint32_t color
     ) {
-        _ref->RenderMenuText(text, xPos, yPos, zPos, alpha, animCounter, animSpeed, ignoreSpriteMask, color);
+        _ref->RenderMenuText(text, x, y, z, alpha, animCounter, animSpeed, ignoreSpriteMask, color);
     }
     /**
      *  \brief Draws centered aligned text to the screen.
      * 
-     *  A wrapper of `RenderMenuText` that draws the text centered around the `xPos` parameter.
-     *  `yPos` position is unchanged. This function handles multi-line strings but centers based
+     *  A wrapper of `RenderMenuText` that draws the text centered around the `x` parameter.
+     *  `y` position is unchanged. This function handles multi-line strings but centers based
      *  on the longest line only (i.e. each line is NOT individually centered).
      * 
      *  \param text A pointer to the text string to be displayed.
-     *  \param xPos Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
-     *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
-     *  \param zPos The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
+     *  \param x Internal resolution screen-space coordinate (640x480). Left edge is 0, right is 640.
+     *  \param y Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
+     *  \param z The draw order/depth buffer value. Lower values draw later / appear in front of other text and sprites.
      *  \param alpha Transparency value from 0 to 1, 1 being fully opaque.
      *  \param color The color of the text string (0xRRGGBB)
      *  \param ignoreSpriteMask If true, ignores color and alpha params and draws as fully opaque white text.
      */
-    void RenderMenuTextCenterAligned(const char* text, int32_t xPos, int32_t yPos,
-        float zPos, float alpha, uint32_t color, bool ignoreSpriteMask
+    void RenderMenuTextCenterAligned(const char* text, int32_t x, int32_t y,
+        float z, float alpha, uint32_t color, bool ignoreSpriteMask
     ) {
-        _ref->RenderMenuTextCenterAligned(text, xPos, yPos, zPos, alpha, color, ignoreSpriteMask);
+        _ref->RenderMenuTextCenterAligned(text, x, y, z, alpha, color, ignoreSpriteMask);
     }
     /**
      *  \brief A higher level text rendering function that triggers a text popup animation in-game (e.g. COUNTER HIT / RECOVERY).
@@ -156,7 +158,7 @@ public:
      *  Invalid values can cause invalid memory access.
      * 
      *  \param id The given id maps to the "COMMON SE" sound effect in the Sound menu.
-     *      See `github.com/youknow232/gearloader/docs/SoundEffectIdMap.txt` for the id mappings.
+     *      See `github.com/youknow232/gearloader/tree/main/docs/SoundEffectIdMap.txt` for the id mappings.
      *  \return true if `id` param is zero
      */
     bool PlayCommonSoundEffect(uint32_t id) {
@@ -170,7 +172,7 @@ public:
      * 
      *  \param params Combined parameter struct
      *  \param ignoreSpriteMask A 4-byte boolean value. If a non-zero value is passed, ignores
-     *      color and alpha params and draws as fully opaque white text.
+     *      color and alpha params.
      */
     void DrawSprite(GGXXACPR_DrawSpriteParams* params, bool ignoreSpriteMask) {
         _ref->DrawSprite(params, ignoreSpriteMask ? 1 : 0);
@@ -214,11 +216,11 @@ public:
      *  \param top edge position
      *  \param right edge position
      *  \param bottom edge position
-     *  \param zPos The Z coordinate for each vertex
+     *  \param z The Z coordinate for each vertex
      *  \param color ARGB color value (i.e. `D3DCOLOR`)
      */
-    void DrawQuad(int32_t left, int32_t top, int32_t right, int32_t bottom, int32_t zPos, uint32_t color) {
-        _ref->DrawQuad(left, top, right, bottom, zPos, color);
+    void DrawQuad(int32_t left, int32_t top, int32_t right, int32_t bottom, int32_t z, uint32_t color) {
+        _ref->DrawQuad(left, top, right, bottom, z, color);
     }
 };
 
@@ -632,12 +634,12 @@ public:
      *      String format and character restrictions apply. see `BaseMod::NativeFunctionsApi::RenderCockpitFontText`
      *      for details.
      *  \param xOffset Offset from the default x position. Internal resolution screen-space coordinates.
-     *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
+     *  \param y Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
      *  \param isSelected A 4-byte boolean that determines transparency.
      *      Opaque if param is non-zero, semi-transparent if zero.
      */
-    void DrawEnumSettingUI(const char* label, int32_t xOffset, int32_t yPos, int32_t isSelected) {
-        _ref->DrawEnumSettingUI(label, xOffset, yPos, isSelected);
+    void DrawEnumSettingUI(const char* label, int32_t xOffset, int32_t y, int32_t isSelected) {
+        _ref->DrawEnumSettingUI(label, xOffset, y, isSelected);
     }
     /**
      *  \brief Draws the gauge setting UI.
@@ -645,13 +647,13 @@ public:
      *  The native function invoked here has a hard-coded x position.
      * 
      *  \param currentValue Value to display on the gauge.
-     *  \param yPos Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
+     *  \param y Internal resolution screen-space coordinate (640x480). Top edge is 0, bottom is 480.
      *  \param isSelected A 4-byte boolean that determines transparency.
      *      Opaque if param is non-zero, semi-transparent if zero.
      *  \param maxValue Maximum value the gauge should display.
      */
-    void DrawGaugeSettingUI(int32_t currentValue, int32_t yPos, int32_t isSelected, int32_t maxValue) {
-        _ref->DrawGaugeSettingUI(currentValue, yPos, isSelected, maxValue);
+    void DrawGaugeSettingUI(int32_t currentValue, int32_t y, int32_t isSelected, int32_t maxValue) {
+        _ref->DrawGaugeSettingUI(currentValue, y, isSelected, maxValue);
     }
     /**
      *  \brief Draws one or both of the menu scroll arrows.
