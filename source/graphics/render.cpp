@@ -296,11 +296,13 @@ namespace ACPRHitboxes {
             float xOffset = -halfWidth;
 
             // apply push adjust collider
-            for (auto& collider : p.colliders()) {
-                if (collider.boxTypeId == static_cast<short>(ggxxacpr::ColliderId::ADJUST_PUSH)) {
-                    xOffset = collider.xOffset * 100.0f;
-                    halfWidth = collider.width * 50.0f;
-                    break;
+            if (p.colliders().data() != nullptr) {
+                for (auto& collider : p.colliders()) {
+                    if (collider.boxTypeId == static_cast<short>(ggxxacpr::ColliderId::ADJUST_PUSH)) {
+                        xOffset = collider.xOffset * 100.0f;
+                        halfWidth = collider.width * 50.0f;
+                        break;
+                    }
                 }
             }
             // hardcoded Bridget shoot adjustment
@@ -387,7 +389,7 @@ namespace ACPRHitboxes {
                     borderOffset
                 );
             } catch (std::exception e) {
-                std::cout << "[Hitboxes] ERR CombinGeometry: " << e.what() << std::endl;
+                std::cout << "[Hitboxes] ERR CombineGeometry: " << e.what() << std::endl;
                 std::cout << "[Hitboxes] P" << entity->playerIndex + 1 <<
                     " ActId " << entity->actId <<
                     " ActTime " << entity->actTimer <<
