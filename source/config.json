@@ -1,7 +1,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/YouKnow232/GearLoader/refs/heads/main/schema/0.1.0/config.schema.json",
     "name": "hitboxes",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "modLoaderVersion": "0.1.0",
     "dependencies": [
         {
