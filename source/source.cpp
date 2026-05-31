@@ -24,6 +24,18 @@ void BASEMOD_CALL RenderHook(
     const BaseMod_HookContext* ctx,
     const BaseMod_DrawInfo* info
 ) {
+    static bool initialized = false;
+    if (!initialized) {
+        int result = InitGraphics(reinterpret_cast<IDirect3DDevice9*>(bmApi->GameData.GetD3D9Device()));
+        if (result != D3D_OK) {
+            std::stringstream ss;
+            ss << "Graphics failed to initialize: 0x" << std::hex << result;
+            //glApi->Log(GearLoader::LogLevel::ERR, ss.str());
+        } else {
+            initialized = true;
+        }
+    }
+
     RenderFrame(bmApi, reinterpret_cast<IDirect3DDevice9*>(info->device));
 }
 
@@ -68,14 +80,6 @@ GEARLOADER_EXPORT void GEARLOADER_CALL Init(GearLoaderContext* ctx, GearLoaderAp
     BaseMod::Api* bmApiPtr = new BaseMod::Api(baseModApi);
 
     SettingsManager::GetInstance().Deserialize(settingsFile);
-
-    int result = InitGraphics(reinterpret_cast<IDirect3DDevice9*>(bmApi.GameData.GetD3D9Device()));
-    if (result != D3D_OK) {
-        std::stringstream ss;
-        ss << "Graphics failed to initiailze: 0x" << std::hex << result;
-        glApi->Log(GearLoader::LogLevel::ERR, ss.str());
-        return;
-    }
 
     RegisterModMenu(bmApi.ModMenu);
 
